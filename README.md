@@ -59,6 +59,21 @@ Answer values are stored in typed nullable columns:
 
 Only the relevant value column is filled for each answer. This is more queryable than a single string or JSON value, especially for results summaries and option counts.
 
+## Backend API Contracts
+
+Form endpoints:
+
+- `GET /api/forms`: list forms for the dashboard, including response counts
+- `POST /api/forms`: create a draft form
+- `GET /api/forms/{form_id}`: fetch one form
+- `PATCH /api/forms/{form_id}`: update form metadata
+- `POST /api/forms/{form_id}/duplicate`: duplicate a form structure without copying responses
+- `POST /api/forms/{form_id}/publish`: publish a form
+- `POST /api/forms/{form_id}/unpublish`: return a form to draft
+- `DELETE /api/forms/{form_id}`: delete a form
+
+Routes are intentionally thin. They translate HTTP requests and errors, while service modules contain business logic such as slug generation, duplication, and publish state changes.
+
 ## Local Development
 
 Frontend:
@@ -79,6 +94,14 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+Backend with test/dev dependencies:
+
+```bash
+cd backend
+.venv\Scripts\activate
+pip install -r requirements-dev.txt
+```
+
 Default local URLs:
 
 - Frontend: `http://localhost:3000`
@@ -95,6 +118,7 @@ established the project foundation and database model layer:
 - Shared folder structure for future features
 - API client boundary
 - Normalized SQLAlchemy models for forms, questions, options, responses, and answers
+- Form CRUD API foundation with Pydantic schemas, thin routes, and service-layer logic
 
 ## Planned Features
 
