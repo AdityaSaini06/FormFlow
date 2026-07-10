@@ -6,7 +6,13 @@ import { useEffect, useMemo, useState } from "react";
 import { BuilderCanvas } from "@/features/builder/components/builder-canvas";
 import { BuilderSettingsPanel } from "@/features/builder/components/builder-settings-panel";
 import { BuilderSidebar } from "@/features/builder/components/builder-sidebar";
-import { createQuestion, deleteQuestion, getBuilderForm, updateQuestion } from "@/services/builder.service";
+import {
+  createQuestion,
+  deleteQuestion,
+  getBuilderForm,
+  reorderQuestions,
+  updateQuestion,
+} from "@/services/builder.service";
 import type { FormBuilder } from "@/types/forms";
 import type { Question, QuestionUpdateInput } from "@/types/questions";
 
@@ -133,6 +139,36 @@ export function BuilderPage({ formId }: { formId: number }) {
     }
   }
 
+  async function handleReorderQuestions(questionIds: number[]) {
+    if (!form) {
+      return;
+    }
+
+    const previousQuestions = form.questions;
+    const optimisticQuestions = questionIds
+      .map((questionId) => previousQuestions.find((question) => question.id === questionId))
+      .filter((question): question is Question => Boolean(question))
+      .map((question, index) => ({ ...question, position: index + 1 }));
+
+    setForm({ ...form, questions: optimisticQuestions });
+    setError(null);
+
+    try {
+      const updatedQuestions = await reorderQuestions(formId, questionIds);
+      setForm((currentForm) =>
+        currentForm
+          ? {
+              ...currentForm,
+              questions: updatedQuestions,
+            }
+          : currentForm,
+      );
+    } catch {
+      setForm((currentForm) => (currentForm ? { ...currentForm, questions: previousQuestions } : currentForm));
+      setError("Unable to reorder questions.");
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#f4f4f2] text-brand-ink">
@@ -177,6 +213,7 @@ export function BuilderPage({ formId }: { formId: number }) {
           selectedQuestionId={selectedQuestionId}
           isCreating={isCreating}
           onAddQuestion={handleCreateQuestion}
+          onReorderQuestions={handleReorderQuestions}
           onSelectQuestion={setSelectedQuestionId}
         />
 

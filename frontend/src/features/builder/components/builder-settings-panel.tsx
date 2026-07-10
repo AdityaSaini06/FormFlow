@@ -1,4 +1,4 @@
-import { AlignLeft, Bot, Copy, Mail, Plus, Trash2, X } from "lucide-react";
+import { Mail, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import type { Question, QuestionType, QuestionUpdateInput } from "@/types/questions";
@@ -185,20 +185,6 @@ export function BuilderSettingsPanel({
             </section>
           ) : null}
 
-          <section>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/55">Layout</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button className="flex h-16 flex-col items-center justify-center gap-1 rounded-md border border-black bg-black/[0.03] text-xs font-semibold">
-                <AlignLeft className="h-4 w-4" />
-                Standard
-              </button>
-              <button className="flex h-16 flex-col items-center justify-center gap-1 rounded-md border border-black/10 text-xs font-semibold">
-                <Copy className="h-4 w-4" />
-                Split
-              </button>
-            </div>
-          </section>
-
           <section className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-normal text-black/55">Validation</p>
             <label className="flex items-center gap-3 text-sm">
@@ -213,16 +199,6 @@ export function BuilderSettingsPanel({
               />
               Required question
             </label>
-          </section>
-
-          <section className="rounded-md bg-[#24211f] p-5 text-white">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-              <Bot className="h-4 w-4" />
-              AI Suggestion
-            </div>
-            <p className="text-sm leading-6 text-white/65">
-              Add a short helper sentence so respondents know exactly what kind of answer you expect.
-            </p>
           </section>
         </div>
       ) : (
