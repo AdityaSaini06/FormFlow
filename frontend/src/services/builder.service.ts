@@ -1,5 +1,5 @@
 import { http } from "@/services/http";
-import type { FormBuilder } from "@/types/forms";
+import type { FormBuilder, FormRead } from "@/types/forms";
 import type { Question, QuestionInput, QuestionUpdateInput } from "@/types/questions";
 
 export async function getBuilderForm(formId: number): Promise<FormBuilder> {
@@ -29,5 +29,10 @@ export async function reorderQuestions(formId: number, questionIds: number[]): P
   const response = await http.post<Question[]>(`/forms/${formId}/questions/reorder`, {
     question_ids: questionIds,
   });
+  return response.data;
+}
+
+export async function publishForm(formId: number): Promise<FormRead> {
+  const response = await http.post<FormRead>(`/forms/${formId}/publish`);
   return response.data;
 }

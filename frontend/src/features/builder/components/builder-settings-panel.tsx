@@ -1,6 +1,7 @@
 import { Mail, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { isPlaceholderQuestionTitle, QUESTION_TITLE_PLACEHOLDER } from "@/features/builder/question-title";
 import type { Question, QuestionType, QuestionUpdateInput } from "@/types/questions";
 
 const QUESTION_TYPES: Array<{ label: string; value: QuestionType }> = [
@@ -30,7 +31,7 @@ export function BuilderSettingsPanel({
   const [options, setOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    setTitle(question?.title ?? "");
+    setTitle(isPlaceholderQuestionTitle(question?.title) ? "" : question?.title ?? "");
     setDescription(question?.description ?? "");
     setPlaceholder(question?.placeholder ?? "");
     setOptions(question?.options.map((option) => option.label) ?? []);
@@ -54,6 +55,13 @@ export function BuilderSettingsPanel({
   function persist(changes: QuestionUpdateInput) {
     if (question) {
       onUpdateQuestion(question.id, changes);
+    }
+  }
+
+  function persistTitle() {
+    const trimmedTitle = title.trim();
+    if (question && trimmedTitle) {
+      onUpdateQuestion(question.id, { title: trimmedTitle });
     }
   }
 
@@ -95,7 +103,8 @@ export function BuilderSettingsPanel({
               Question
               <input
                 value={title}
-                onBlur={() => persist({ title })}
+                placeholder={QUESTION_TITLE_PLACEHOLDER}
+                onBlur={persistTitle}
                 onChange={(event) => {
                   setTitle(event.target.value);
                   updateDraft({ title: event.target.value });
@@ -107,6 +116,7 @@ export function BuilderSettingsPanel({
               Description
               <textarea
                 value={description}
+                placeholder="Add helper text for respondents"
                 onBlur={() => persist({ description: description || null })}
                 onChange={(event) => {
                   setDescription(event.target.value);
@@ -120,6 +130,7 @@ export function BuilderSettingsPanel({
               Placeholder
               <input
                 value={placeholder}
+                placeholder="Example: name@example.com"
                 onBlur={() => persist({ placeholder: placeholder || null })}
                 onChange={(event) => {
                   setPlaceholder(event.target.value);

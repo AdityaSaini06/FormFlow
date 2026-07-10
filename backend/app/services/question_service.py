@@ -1,9 +1,9 @@
 import re
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Form, Question, QuestionOption, QuestionType
+from app.models import Answer, Form, Question, QuestionOption, QuestionType
 from app.schemas.form import FormBuilderRead
 from app.schemas.question import QuestionCreate, QuestionOptionCreate, QuestionRead, QuestionReorder, QuestionUpdate
 from app.services.exceptions import ConflictError, NotFoundError
@@ -71,6 +71,8 @@ def update_question(db: Session, form_id: int, question_id: int, payload: Questi
 
 def delete_question(db: Session, form_id: int, question_id: int) -> None:
     question = _get_question(db, form_id, question_id)
+    db.execute(delete(Answer).where(Answer.question_id == question.id))
+    db.flush()
     db.delete(question)
     db.flush()
     _normalize_positions(db, form_id)
@@ -130,6 +132,11 @@ def _normalize_positions(db: Session, form_id: int) -> None:
     questions = db.scalars(
         select(Question).where(Question.form_id == form_id).order_by(Question.position)
     ).all()
+
+    for index, question in enumerate(questions, start=1):
+        question.position = -index
+    db.flush()
+
     for position, question in enumerate(questions, start=1):
         question.position = position
 

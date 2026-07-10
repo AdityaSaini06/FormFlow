@@ -1,5 +1,6 @@
 import { Mail, Star } from "lucide-react";
 
+import { getQuestionTitleLabel, isPlaceholderQuestionTitle } from "@/features/builder/question-title";
 import type { FormBuilder } from "@/types/forms";
 import type { Question } from "@/types/questions";
 
@@ -18,6 +19,9 @@ export function BuilderCanvas({ form, question }: BuilderCanvasProps) {
     );
   }
 
+  const questionTitle = getQuestionTitleLabel(question.title);
+  const isPlaceholderTitle = isPlaceholderQuestionTitle(question.title);
+
   return (
     <section className="w-full max-w-2xl rounded-lg border border-black/10 bg-white px-11 py-10 shadow-sm">
       <div className="mb-8 flex justify-center">
@@ -27,7 +31,9 @@ export function BuilderCanvas({ form, question }: BuilderCanvasProps) {
       </div>
 
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-normal">{question.title}</h1>
+        <h1 className={isPlaceholderTitle ? "text-2xl font-semibold tracking-normal text-black/35" : "text-2xl font-semibold tracking-normal"}>
+          {questionTitle}
+        </h1>
         {question.description ? <p className="text-sm leading-6 text-black/60">{question.description}</p> : null}
       </div>
 

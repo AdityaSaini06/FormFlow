@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, Loader2, Plus } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { BuilderCanvas } from "@/features/builder/components/builder-canvas";
@@ -10,6 +11,7 @@ import {
   createQuestion,
   deleteQuestion,
   getBuilderForm,
+  publishForm,
   reorderQuestions,
   updateQuestion,
 } from "@/services/builder.service";
@@ -21,6 +23,7 @@ export function BuilderPage({ formId }: { formId: number }) {
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -169,6 +172,28 @@ export function BuilderPage({ formId }: { formId: number }) {
     }
   }
 
+  async function handlePublishForm() {
+    if (!form) {
+      return;
+    }
+
+    setIsPublishing(true);
+    setError(null);
+    try {
+      const publishedForm = await publishForm(form.id);
+      setForm({
+        ...form,
+        status: publishedForm.status,
+        published_at: publishedForm.published_at,
+        updated_at: publishedForm.updated_at,
+      });
+    } catch {
+      setError("Unable to publish form.");
+    } finally {
+      setIsPublishing(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#f4f4f2] text-brand-ink">
@@ -202,8 +227,21 @@ export function BuilderPage({ formId }: { formId: number }) {
           <span className="pb-2 text-black/60">Results</span>
         </nav>
         <div className="flex justify-end gap-3">
-          <button className="h-9 rounded-md bg-black/[0.04] px-5 text-sm font-semibold">Preview</button>
-          <button className="h-9 rounded-md bg-black px-5 text-sm font-semibold text-white">Publish</button>
+          <Link
+            className="inline-flex h-9 items-center rounded-md bg-black/[0.04] px-5 text-sm font-semibold"
+            href={`/to/${form.slug}`}
+            target="_blank"
+          >
+            Preview
+          </Link>
+          <button
+            onClick={handlePublishForm}
+            disabled={isPublishing || form.status === "published"}
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-black px-5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {form.status === "published" ? "Published" : "Publish"}
+          </button>
         </div>
       </header>
 

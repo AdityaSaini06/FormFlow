@@ -17,6 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Settings } from "lucide-react";
 
+import { getQuestionTitleLabel, isPlaceholderQuestionTitle } from "@/features/builder/question-title";
 import type { FormBuilder } from "@/types/forms";
 import type { Question } from "@/types/questions";
 
@@ -113,6 +114,8 @@ type SortableQuestionRowProps = {
 };
 
 function SortableQuestionRow({ question, isSelected, onSelectQuestion }: SortableQuestionRowProps) {
+  const questionTitle = getQuestionTitleLabel(question.title);
+  const isPlaceholderTitle = isPlaceholderQuestionTitle(question.title);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: question.id,
   });
@@ -142,7 +145,7 @@ function SortableQuestionRow({ question, isSelected, onSelectQuestion }: Sortabl
           {...attributes}
           {...listeners}
           className="grid h-7 w-5 shrink-0 cursor-grab place-items-center rounded text-black/35 active:cursor-grabbing"
-          aria-label={`Drag ${question.title}`}
+          aria-label={`Drag ${questionTitle}`}
         >
           <GripVertical className="h-4 w-4" />
         </button>
@@ -159,7 +162,7 @@ function SortableQuestionRow({ question, isSelected, onSelectQuestion }: Sortabl
           >
             {question.position}
           </span>
-          <span className="truncate">{question.title}</span>
+          <span className={isPlaceholderTitle ? "truncate text-black/45" : "truncate"}>{questionTitle}</span>
         </button>
       </div>
     </div>

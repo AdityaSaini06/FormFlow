@@ -76,6 +76,8 @@ Form endpoints:
 - `PATCH /api/forms/{form_id}/questions/{question_id}`: update question settings
 - `DELETE /api/forms/{form_id}/questions/{question_id}`: remove a question and normalize ordering
 - `POST /api/forms/{form_id}/questions/reorder`: persist a new full question order
+- `GET /api/public/forms/{slug}`: fetch a published form for respondents
+- `POST /api/public/forms/{slug}/responses`: validate and submit respondent answers
 
 Routes are intentionally thin. They translate HTTP requests and errors, while service modules contain business logic such as slug generation, duplication, and publish state changes.
 
@@ -134,6 +136,7 @@ established the project foundation and database model layer:
 - Form CRUD API foundation with Pydantic schemas, thin routes, and service-layer logic
 - Idempotent seed script for demo forms and response counts
 - Builder API foundation and first three-panel builder UI shell
+- Public form flow with one-question-at-a-time answering and response submission
 
 ## Planned Features
 
