@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+*.db
+
+# Environment
+.env
+.env.local
+
+# Tooling
+.DS_Store
