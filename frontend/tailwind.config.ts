@@ -14,7 +14,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Arial", "sans-serif"],
+        sans: ["Inter", "Arial", "sans-serif"],
       },
       boxShadow: {
         soft: "0 16px 60px rgba(25, 25, 25, 0.08)",

@@ -102,9 +102,17 @@ cd backend
 pip install -r requirements-dev.txt
 ```
 
+Seed demo data:
+
+```bash
+cd backend
+.venv\Scripts\activate
+python -m app.seed.run
+```
+
 Default local URLs:
 
-- Frontend: `http://localhost:3000`
+- Frontend: `http://localhost:3000` or `http://localhost:3001`
 - Backend: `http://localhost:8000`
 - Backend health check: `http://localhost:8000/api/health`
 
@@ -119,6 +127,7 @@ established the project foundation and database model layer:
 - API client boundary
 - Normalized SQLAlchemy models for forms, questions, options, responses, and answers
 - Form CRUD API foundation with Pydantic schemas, thin routes, and service-layer logic
+- Idempotent seed script for demo forms and response counts
 
 ## Planned Features
 

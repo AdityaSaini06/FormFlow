@@ -18,3 +18,4 @@ __pycache__/
 
 # Tooling
 .DS_Store
+.logs/
