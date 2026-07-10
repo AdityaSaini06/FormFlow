@@ -57,9 +57,11 @@ def update_question(db: Session, form_id: int, question_id: int, payload: Questi
 
     if payload.options is not None:
         question.options.clear()
+        db.flush()
         _replace_options(question, payload, next_type)
     elif payload.type is not None and payload.type != QuestionType.MULTIPLE_CHOICE:
         question.options.clear()
+        db.flush()
     elif payload.type == QuestionType.MULTIPLE_CHOICE and not question.options:
         _replace_options(question, payload, next_type)
 

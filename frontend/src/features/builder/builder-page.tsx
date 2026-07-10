@@ -8,7 +8,7 @@ import { BuilderSettingsPanel } from "@/features/builder/components/builder-sett
 import { BuilderSidebar } from "@/features/builder/components/builder-sidebar";
 import { createQuestion, deleteQuestion, getBuilderForm, updateQuestion } from "@/services/builder.service";
 import type { FormBuilder } from "@/types/forms";
-import type { Question } from "@/types/questions";
+import type { Question, QuestionUpdateInput } from "@/types/questions";
 
 export function BuilderPage({ formId }: { formId: number }) {
   const [form, setForm] = useState<FormBuilder | null>(null);
@@ -83,7 +83,20 @@ export function BuilderPage({ formId }: { formId: number }) {
     }
   }
 
-  async function handleUpdateQuestion(questionId: number, changes: Partial<Question>) {
+  function handleDraftQuestionChange(questionId: number, changes: QuestionUpdateInput) {
+    setForm((currentForm) =>
+      currentForm
+        ? {
+            ...currentForm,
+            questions: currentForm.questions.map((question) =>
+              question.id === questionId ? applyDraftChanges(question, changes) : question,
+            ),
+          }
+        : currentForm,
+    );
+  }
+
+  async function handleUpdateQuestion(questionId: number, changes: QuestionUpdateInput) {
     try {
       const updated = await updateQuestion(formId, questionId, changes);
       setForm((currentForm) =>
@@ -182,9 +195,29 @@ export function BuilderPage({ formId }: { formId: number }) {
         <BuilderSettingsPanel
           question={selectedQuestion}
           onDeleteQuestion={handleDeleteQuestion}
+          onDraftQuestionChange={handleDraftQuestionChange}
           onUpdateQuestion={handleUpdateQuestion}
         />
       </section>
     </main>
   );
+}
+
+function applyDraftChanges(question: Question, changes: QuestionUpdateInput): Question {
+  return {
+    ...question,
+    ...changes,
+    description: changes.description === undefined ? question.description : changes.description,
+    placeholder: changes.placeholder === undefined ? question.placeholder : changes.placeholder,
+    options:
+      changes.options?.map((option, index) => ({
+        id: question.options[index]?.id ?? -(index + 1),
+        question_id: question.id,
+        label: option.label,
+        value: option.value ?? option.label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""),
+        position: index + 1,
+        created_at: question.created_at,
+        updated_at: question.updated_at,
+      })) ?? question.options,
+  };
 }

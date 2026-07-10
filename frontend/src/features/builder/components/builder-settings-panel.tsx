@@ -1,6 +1,7 @@
-import { AlignLeft, Bot, Copy, Mail, Trash2 } from "lucide-react";
+import { AlignLeft, Bot, Copy, Mail, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import type { Question, QuestionType } from "@/types/questions";
+import type { Question, QuestionType, QuestionUpdateInput } from "@/types/questions";
 
 const QUESTION_TYPES: Array<{ label: string; value: QuestionType }> = [
   { label: "Short text", value: "short_text" },
@@ -13,14 +14,71 @@ const QUESTION_TYPES: Array<{ label: string; value: QuestionType }> = [
 type BuilderSettingsPanelProps = {
   question: Question | null;
   onDeleteQuestion: (questionId: number) => Promise<void>;
-  onUpdateQuestion: (questionId: number, changes: Partial<Question>) => Promise<void>;
+  onDraftQuestionChange: (questionId: number, changes: QuestionUpdateInput) => void;
+  onUpdateQuestion: (questionId: number, changes: QuestionUpdateInput) => Promise<void>;
 };
 
 export function BuilderSettingsPanel({
   question,
   onDeleteQuestion,
+  onDraftQuestionChange,
   onUpdateQuestion,
 }: BuilderSettingsPanelProps) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [placeholder, setPlaceholder] = useState("");
+  const [options, setOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setTitle(question?.title ?? "");
+    setDescription(question?.description ?? "");
+    setPlaceholder(question?.placeholder ?? "");
+    setOptions(question?.options.map((option) => option.label) ?? []);
+  }, [question?.id, question?.title, question?.description, question?.placeholder, question?.options]);
+
+  const optionPayload = useMemo(
+    () =>
+      options
+        .map((label) => label.trim())
+        .filter(Boolean)
+        .map((label) => ({ label })),
+    [options],
+  );
+
+  function updateDraft(changes: QuestionUpdateInput) {
+    if (question) {
+      onDraftQuestionChange(question.id, changes);
+    }
+  }
+
+  function persist(changes: QuestionUpdateInput) {
+    if (question) {
+      onUpdateQuestion(question.id, changes);
+    }
+  }
+
+  function setOptionLabel(index: number, label: string) {
+    const nextOptions = options.map((option, optionIndex) => (optionIndex === index ? label : option));
+    setOptions(nextOptions);
+    updateDraft({ options: nextOptions.filter(Boolean).map((optionLabel) => ({ label: optionLabel })) });
+  }
+
+  function addOption() {
+    const nextOptions = [...options, `Option ${options.length + 1}`];
+    setOptions(nextOptions);
+    const nextPayload = nextOptions.map((label) => ({ label }));
+    updateDraft({ options: nextPayload });
+    persist({ options: nextPayload });
+  }
+
+  function removeOption(index: number) {
+    const nextOptions = options.filter((_, optionIndex) => optionIndex !== index);
+    setOptions(nextOptions);
+    const nextPayload = nextOptions.map((label) => ({ label }));
+    updateDraft({ options: nextPayload });
+    persist({ options: nextPayload });
+  }
+
   return (
     <aside className="border-l border-black/10 bg-white">
       <div className="grid grid-cols-3 border-b border-black/10 text-sm">
@@ -30,14 +88,58 @@ export function BuilderSettingsPanel({
       </div>
 
       {question ? (
-        <div className="space-y-8 p-6">
+        <div className="space-y-7 p-6">
+          <section className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-normal text-black/55">Content</p>
+            <label className="block text-sm font-medium">
+              Question
+              <input
+                value={title}
+                onBlur={() => persist({ title })}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  updateDraft({ title: event.target.value });
+                }}
+                className="mt-2 h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none transition focus:border-black"
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Description
+              <textarea
+                value={description}
+                onBlur={() => persist({ description: description || null })}
+                onChange={(event) => {
+                  setDescription(event.target.value);
+                  updateDraft({ description: event.target.value || null });
+                }}
+                rows={3}
+                className="mt-2 w-full resize-none rounded-md border border-black/10 px-3 py-2 text-sm outline-none transition focus:border-black"
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Placeholder
+              <input
+                value={placeholder}
+                onBlur={() => persist({ placeholder: placeholder || null })}
+                onChange={(event) => {
+                  setPlaceholder(event.target.value);
+                  updateDraft({ placeholder: event.target.value || null });
+                }}
+                className="mt-2 h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none transition focus:border-black"
+              />
+            </label>
+          </section>
+
           <section>
             <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/55">Question Type</p>
             <div className="space-y-2">
               {QUESTION_TYPES.map((type) => (
                 <button
                   key={type.value}
-                  onClick={() => onUpdateQuestion(question.id, { type: type.value })}
+                  onClick={() => {
+                    updateDraft({ type: type.value });
+                    persist({ type: type.value });
+                  }}
                   className={
                     question.type === type.value
                       ? "flex h-10 w-full items-center gap-3 rounded-md border border-black bg-black px-3 text-sm font-semibold text-white"
@@ -50,6 +152,38 @@ export function BuilderSettingsPanel({
               ))}
             </div>
           </section>
+
+          {question.type === "multiple_choice" ? (
+            <section>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/55">Answer Options</p>
+              <div className="space-y-2">
+                {options.map((option, index) => (
+                  <div key={`${question.id}-${index}`} className="flex items-center gap-2">
+                    <input
+                      value={option}
+                      onBlur={() => persist({ options: optionPayload })}
+                      onChange={(event) => setOptionLabel(index, event.target.value)}
+                      className="h-10 min-w-0 flex-1 rounded-md border border-black/10 px-3 text-sm outline-none transition focus:border-black"
+                    />
+                    <button
+                      onClick={() => removeOption(index)}
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-black/10 text-black/50 transition hover:text-red-600"
+                      aria-label={`Remove option ${index + 1}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={addOption}
+                  className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-md border border-dashed border-black/15 text-sm font-semibold transition hover:bg-black/[0.03]"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add option
+                </button>
+              </div>
+            </section>
+          ) : null}
 
           <section>
             <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/55">Layout</p>
@@ -70,7 +204,10 @@ export function BuilderSettingsPanel({
             <label className="flex items-center gap-3 text-sm">
               <input
                 checked={question.is_required}
-                onChange={(event) => onUpdateQuestion(question.id, { is_required: event.target.checked })}
+                onChange={(event) => {
+                  updateDraft({ is_required: event.target.checked });
+                  persist({ is_required: event.target.checked });
+                }}
                 type="checkbox"
                 className="h-4 w-4"
               />
