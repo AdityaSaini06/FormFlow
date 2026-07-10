@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
-from app.schemas.form import FormCreate, FormListItem, FormRead, FormUpdate
+from app.schemas.form import FormBuilderRead, FormCreate, FormListItem, FormRead, FormUpdate
+from app.schemas.question import QuestionCreate, QuestionRead, QuestionReorder, QuestionUpdate
 from app.services import form_service
+from app.services import question_service
 from app.services.exceptions import ConflictError, NotFoundError
 
 
@@ -32,6 +34,14 @@ def get_form(form_id: int, db: DBSession) -> FormRead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
     return form_service.to_read_model(form)
+
+
+@router.get("/{form_id}/builder", response_model=FormBuilderRead)
+def get_builder_form(form_id: int, db: DBSession) -> FormBuilderRead:
+    try:
+        return question_service.get_builder_form(db, form_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.patch("/{form_id}", response_model=FormRead)
@@ -82,5 +92,44 @@ def unpublish_form(form_id: int, db: DBSession) -> FormRead:
 def delete_form(form_id: int, db: DBSession) -> None:
     try:
         form_service.delete_form(db, form_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/{form_id}/questions", response_model=QuestionRead, status_code=status.HTTP_201_CREATED)
+def create_question(form_id: int, payload: QuestionCreate, db: DBSession) -> QuestionRead:
+    try:
+        return question_service.create_question(db, form_id, payload)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/{form_id}/questions/reorder", response_model=list[QuestionRead])
+def reorder_questions(form_id: int, payload: QuestionReorder, db: DBSession) -> list[QuestionRead]:
+    try:
+        return question_service.reorder_questions(db, form_id, payload)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.patch("/{form_id}/questions/{question_id}", response_model=QuestionRead)
+def update_question(
+    form_id: int,
+    question_id: int,
+    payload: QuestionUpdate,
+    db: DBSession,
+) -> QuestionRead:
+    try:
+        return question_service.update_question(db, form_id, question_id, payload)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.delete("/{form_id}/questions/{question_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_question(form_id: int, question_id: int, db: DBSession) -> None:
+    try:
+        question_service.delete_question(db, form_id, question_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

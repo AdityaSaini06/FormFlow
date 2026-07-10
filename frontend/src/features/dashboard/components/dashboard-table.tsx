@@ -1,4 +1,5 @@
 import { Calendar, Inbox, MessageSquare, MoreVertical, Plus, Rocket } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import type { FormListItem, FormStatus } from "@/types/forms";
@@ -40,10 +41,10 @@ function FormRow({ form, iconIndex }: { form: FormListItem; iconIndex: number })
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-cyan-50 text-[#007b8f]">
           <Icon className="h-5 w-5" />
         </div>
-        <div className="min-w-0">
+        <Link href={`/forms/${form.id}/builder`} className="min-w-0 rounded-sm focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black">
           <h2 className="truncate text-sm font-semibold">{form.title}</h2>
           <p className="mt-1 truncate text-xs text-black/45">{form.description ?? form.slug}</p>
-        </div>
+        </Link>
       </div>
 
       <StatusBadge status={form.status} />

@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import FormStatus
+from app.schemas.question import QuestionRead
 
 
 class FormCreate(BaseModel):
@@ -34,3 +35,7 @@ class FormRead(BaseModel):
 
 class FormListItem(FormRead):
     response_count: int = 0
+
+
+class FormBuilderRead(FormRead):
+    questions: list[QuestionRead] = Field(default_factory=list)

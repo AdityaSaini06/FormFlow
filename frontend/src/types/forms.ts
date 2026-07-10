@@ -1,3 +1,5 @@
+import type { Question } from "@/types/questions";
+
 export type FormStatus = "draft" | "published" | "archived";
 
 export type FormRead = {
@@ -18,4 +20,8 @@ export type FormListItem = FormRead & {
 export type CreateFormInput = {
   title: string;
   description?: string | null;
+};
+
+export type FormBuilder = FormRead & {
+  questions: Question[];
 };

@@ -66,11 +66,16 @@ Form endpoints:
 - `GET /api/forms`: list forms for the dashboard, including response counts
 - `POST /api/forms`: create a draft form
 - `GET /api/forms/{form_id}`: fetch one form
+- `GET /api/forms/{form_id}/builder`: fetch one form with ordered questions and options for the builder
 - `PATCH /api/forms/{form_id}`: update form metadata
 - `POST /api/forms/{form_id}/duplicate`: duplicate a form structure without copying responses
 - `POST /api/forms/{form_id}/publish`: publish a form
 - `POST /api/forms/{form_id}/unpublish`: return a form to draft
 - `DELETE /api/forms/{form_id}`: delete a form
+- `POST /api/forms/{form_id}/questions`: add a question to a form
+- `PATCH /api/forms/{form_id}/questions/{question_id}`: update question settings
+- `DELETE /api/forms/{form_id}/questions/{question_id}`: remove a question and normalize ordering
+- `POST /api/forms/{form_id}/questions/reorder`: persist a new full question order
 
 Routes are intentionally thin. They translate HTTP requests and errors, while service modules contain business logic such as slug generation, duplication, and publish state changes.
 
@@ -128,6 +133,7 @@ established the project foundation and database model layer:
 - Normalized SQLAlchemy models for forms, questions, options, responses, and answers
 - Form CRUD API foundation with Pydantic schemas, thin routes, and service-layer logic
 - Idempotent seed script for demo forms and response counts
+- Builder API foundation and first three-panel builder UI shell
 
 ## Planned Features
 
