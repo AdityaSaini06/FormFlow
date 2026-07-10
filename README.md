@@ -16,6 +16,49 @@ The repository is split into two deployable applications:
 
 Both apps are intentionally separated so the frontend only talks to the backend through typed service functions, while backend routes stay thin and delegate business logic to service modules.
 
+## Database Design
+
+The backend uses normalized SQLAlchemy models instead of storing whole forms as JSON. This keeps form editing, response validation, and analytics queryable.
+
+Core tables:
+
+- `forms`: top-level form metadata such as title, description, slug, status, and publish timestamps.
+- `questions`: ordered questions that belong to a form. The `position` field supports drag-and-drop ordering.
+- `question_options`: ordered options for choice-style questions.
+- `responses`: one submitted response session for a form.
+- `answers`: one answer for one question inside one response.
+
+Relationships:
+
+```text
+Form
+  has many Questions
+  has many Responses
+
+Question
+  belongs to Form
+  may have many QuestionOptions
+  has many Answers
+
+Response
+  belongs to Form
+  has many Answers
+
+Answer
+  belongs to Response
+  belongs to Question
+  may reference QuestionOption
+```
+
+Answer values are stored in typed nullable columns:
+
+- `text_value`: short text, long text, and email answers
+- `number_value`: numeric answers such as ratings
+- `boolean_value`: yes/no answers
+- `question_option_id`: selected option for multiple-choice answers
+
+Only the relevant value column is filled for each answer. This is more queryable than a single string or JSON value, especially for results summaries and option counts.
+
 ## Local Development
 
 Frontend:
@@ -44,13 +87,14 @@ Default local URLs:
 
 ## Current Milestone
 
-established the project foundation:
+established the project foundation and database model layer:
 
 - Frontend app shell
 - Backend app shell
 - Health check endpoint
 - Shared folder structure for future features
 - API client boundary
+- Normalized SQLAlchemy models for forms, questions, options, responses, and answers
 
 ## Planned Features
 
