@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.schemas.form import FormBuilderRead, FormCreate, FormListItem, FormRead, FormUpdate
 from app.schemas.question import QuestionCreate, QuestionRead, QuestionReorder, QuestionUpdate
+from app.schemas.response import FormResultsRead
 from app.services import form_service
 from app.services import question_service
+from app.services import results_service
 from app.services.exceptions import ConflictError, NotFoundError
 
 
@@ -40,6 +42,14 @@ def get_form(form_id: int, db: DBSession) -> FormRead:
 def get_builder_form(form_id: int, db: DBSession) -> FormBuilderRead:
     try:
         return question_service.get_builder_form(db, form_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/{form_id}/results", response_model=FormResultsRead)
+def get_form_results(form_id: int, db: DBSession) -> FormResultsRead:
+    try:
+        return results_service.get_form_results(db, form_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 

@@ -221,10 +221,15 @@ export function BuilderPage({ formId }: { formId: number }) {
       <header className="grid h-16 grid-cols-[240px_1fr_240px] items-center border-b border-black/10 bg-white px-6">
         <div className="text-xl font-semibold">FormFlow</div>
         <nav className="flex justify-center gap-10 text-sm">
+          <Link href="/" className="pb-2 text-black/60 transition hover:text-black">
+            Dashboard
+          </Link>
           <span className="border-b border-black pb-2 font-semibold">Create</span>
           <span className="pb-2 text-black/60">Connect</span>
           <span className="pb-2 text-black/60">Share</span>
-          <span className="pb-2 text-black/60">Results</span>
+          <Link href={`/forms/${form.id}/results`} className="pb-2 text-black/60 transition hover:text-black">
+            Results
+          </Link>
         </nav>
         <div className="flex justify-end gap-3">
           <Link

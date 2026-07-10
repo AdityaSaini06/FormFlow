@@ -48,7 +48,12 @@ function FormRow({ form, iconIndex }: { form: FormListItem; iconIndex: number })
       </div>
 
       <StatusBadge status={form.status} />
-      <span className="text-sm tabular-nums">{form.response_count.toLocaleString()}</span>
+      <Link
+        href={`/forms/${form.id}/results`}
+        className="w-fit rounded-sm text-sm tabular-nums underline-offset-4 hover:underline focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black"
+      >
+        {form.response_count.toLocaleString()}
+      </Link>
       <span className="text-sm text-black/70">{formatRelativeDate(form.updated_at)}</span>
 
       <button
