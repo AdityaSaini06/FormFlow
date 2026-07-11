@@ -19,6 +19,13 @@ def get_public_form(db: Session, slug: str) -> FormBuilderRead:
 
 def submit_response(db: Session, slug: str, payload: ResponseSubmit) -> ResponseSubmitResult:
     form = _get_published_form(db, slug)
+    question_ids = {question.id for question in form.questions}
+    submitted_question_ids = [answer.question_id for answer in payload.answers]
+    if len(submitted_question_ids) != len(set(submitted_question_ids)):
+        raise ConflictError("Each question can only be answered once.")
+    if unknown_ids := set(submitted_question_ids) - question_ids:
+        raise ConflictError(f"Unknown question ids: {sorted(unknown_ids)}.")
+
     answers_by_question_id = {answer.question_id: answer for answer in payload.answers}
 
     for question in form.questions:
@@ -68,6 +75,18 @@ def _get_published_form(db: Session, slug: str) -> Form:
 
 
 def _validate_answer(question: Question, answer: AnswerSubmit) -> None:
+    value_count = sum(
+        value is not None
+        for value in (
+            _clean_text(answer.text_value),
+            answer.number_value,
+            answer.boolean_value,
+            answer.question_option_id,
+        )
+    )
+    if value_count != 1:
+        raise ConflictError(f"Question {question.id} expects exactly one answer value.")
+
     if question.type in {QuestionType.SHORT_TEXT, QuestionType.LONG_TEXT}:
         if not _clean_text(answer.text_value):
             raise ConflictError(f"Question {question.id} expects a text answer.")
@@ -79,10 +98,15 @@ def _validate_answer(question: Question, answer: AnswerSubmit) -> None:
             raise ConflictError(f"Question {question.id} expects a valid email answer.")
         return
 
-    if question.type == QuestionType.MULTIPLE_CHOICE:
+    if question.type in {QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN}:
         option_ids = {option.id for option in question.options}
         if answer.question_option_id not in option_ids:
             raise ConflictError(f"Question {question.id} expects one of its saved options.")
+        return
+
+    if question.type == QuestionType.NUMBER:
+        if answer.number_value is None:
+            raise ConflictError(f"Question {question.id} expects a number.")
         return
 
     if question.type == QuestionType.RATING:

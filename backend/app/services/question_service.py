@@ -10,6 +10,7 @@ from app.services.exceptions import ConflictError, NotFoundError
 
 
 OPTION_VALUE_PATTERN = re.compile(r"[^a-z0-9]+")
+OPTION_QUESTION_TYPES = {QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN}
 
 
 def get_builder_form(db: Session, form_id: int) -> FormBuilderRead:
@@ -59,10 +60,10 @@ def update_question(db: Session, form_id: int, question_id: int, payload: Questi
         question.options.clear()
         db.flush()
         _replace_options(question, payload, next_type)
-    elif payload.type is not None and payload.type != QuestionType.MULTIPLE_CHOICE:
+    elif payload.type is not None and payload.type not in OPTION_QUESTION_TYPES:
         question.options.clear()
         db.flush()
-    elif payload.type == QuestionType.MULTIPLE_CHOICE and not question.options:
+    elif payload.type in OPTION_QUESTION_TYPES and not question.options:
         _replace_options(question, payload, next_type)
 
     db.commit()
@@ -147,7 +148,7 @@ def _replace_options(
     question_type: QuestionType | None,
 ) -> None:
     options = payload.options or _default_options_for(question_type)
-    if question_type != QuestionType.MULTIPLE_CHOICE:
+    if question_type not in OPTION_QUESTION_TYPES:
         return
 
     for position, option in enumerate(options, start=1):
@@ -161,7 +162,7 @@ def _replace_options(
 
 
 def _default_options_for(question_type: QuestionType | None) -> list[QuestionOptionCreate]:
-    if question_type != QuestionType.MULTIPLE_CHOICE:
+    if question_type not in OPTION_QUESTION_TYPES:
         return []
 
     return [

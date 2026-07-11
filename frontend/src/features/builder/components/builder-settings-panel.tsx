@@ -1,15 +1,34 @@
-import { Copy, Mail, Plus, Trash2, X } from "lucide-react";
+import {
+  AlignLeft,
+  ArrowDown,
+  ArrowUp,
+  AtSign,
+  CircleDot,
+  Copy,
+  Hash,
+  ListChecks,
+  ListFilter,
+  Plus,
+  Star,
+  ToggleLeft,
+  Trash2,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { isPlaceholderQuestionTitle, QUESTION_TITLE_PLACEHOLDER } from "@/features/builder/question-title";
 import type { Question, QuestionType, QuestionUpdateInput } from "@/types/questions";
 
-const QUESTION_TYPES: Array<{ label: string; value: QuestionType }> = [
-  { label: "Short text", value: "short_text" },
-  { label: "Long text", value: "long_text" },
-  { label: "Email", value: "email" },
-  { label: "Multiple choice", value: "multiple_choice" },
-  { label: "Rating", value: "rating" },
+const QUESTION_TYPES: Array<{ label: string; value: QuestionType; icon: LucideIcon }> = [
+  { label: "Short text", value: "short_text", icon: CircleDot },
+  { label: "Long text", value: "long_text", icon: AlignLeft },
+  { label: "Email", value: "email", icon: AtSign },
+  { label: "Multiple choice", value: "multiple_choice", icon: ListChecks },
+  { label: "Dropdown", value: "dropdown", icon: ListFilter },
+  { label: "Number", value: "number", icon: Hash },
+  { label: "Rating", value: "rating", icon: Star },
+  { label: "Yes / No", value: "boolean", icon: ToggleLeft },
 ];
 
 type BuilderSettingsPanelProps = {
@@ -89,6 +108,17 @@ export function BuilderSettingsPanel({
     persist({ options: nextPayload });
   }
 
+  function moveOption(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= options.length) return;
+    const nextOptions = [...options];
+    [nextOptions[index], nextOptions[nextIndex]] = [nextOptions[nextIndex], nextOptions[index]];
+    setOptions(nextOptions);
+    const nextPayload = nextOptions.map((label) => ({ label }));
+    updateDraft({ options: nextPayload });
+    persist({ options: nextPayload });
+  }
+
   return (
     <aside className="border-l border-black/10 bg-white">
       <div className="grid grid-cols-3 border-b border-black/10 text-sm">
@@ -161,14 +191,14 @@ export function BuilderSettingsPanel({
                       : "flex h-10 w-full items-center gap-3 rounded-md border border-black/10 px-3 text-sm transition hover:bg-black/[0.03]"
                   }
                 >
-                  <Mail className="h-4 w-4" />
+                  <type.icon className="h-4 w-4" />
                   {type.label}
                 </button>
               ))}
             </div>
           </section>
 
-          {question.type === "multiple_choice" ? (
+          {["multiple_choice", "dropdown"].includes(question.type) ? (
             <section>
               <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/55">Answer Options</p>
               <div className="space-y-2">
@@ -180,6 +210,22 @@ export function BuilderSettingsPanel({
                       onChange={(event) => setOptionLabel(index, event.target.value)}
                       className="h-10 min-w-0 flex-1 rounded-md border border-black/10 px-3 text-sm outline-none transition focus:border-black"
                     />
+                    <button
+                      onClick={() => moveOption(index, -1)}
+                      disabled={index === 0}
+                      className="grid h-10 w-8 shrink-0 place-items-center text-black/45 disabled:opacity-25"
+                      aria-label={`Move option ${index + 1} up`}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => moveOption(index, 1)}
+                      disabled={index === options.length - 1}
+                      className="grid h-10 w-8 shrink-0 place-items-center text-black/45 disabled:opacity-25"
+                      aria-label={`Move option ${index + 1} down`}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => removeOption(index)}
                       className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-black/10 text-black/50 transition hover:text-red-600"

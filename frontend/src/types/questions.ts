@@ -1,4 +1,4 @@
-export type QuestionType = "short_text" | "long_text" | "email" | "multiple_choice" | "rating" | "boolean";
+export type QuestionType = "short_text" | "long_text" | "email" | "multiple_choice" | "dropdown" | "number" | "rating" | "boolean";
 
 export type QuestionOption = {
   id: number;

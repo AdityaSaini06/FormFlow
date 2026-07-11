@@ -1,16 +1,17 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, BarChart3, ChevronDown, Clock, ExternalLink, Inbox, Loader2, Users } from "lucide-react";
+import { AlertCircle, ArrowLeft, BarChart3, ChevronDown, Clock, Download, ExternalLink, Inbox, Loader2, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { getFormResults } from "@/services/results.service";
+import { exportFormResults, getFormResults } from "@/services/results.service";
 import type { FormResults, QuestionResultSummary } from "@/types/responses";
 
 export function ResultsPage({ formId }: { formId: number }) {
   const [results, setResults] = useState<FormResults | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,6 +51,23 @@ export function ResultsPage({ formId }: { formId: number }) {
     [results],
   );
 
+  async function handleExport() {
+    setIsExporting(true);
+    try {
+      const blob = await exportFormResults(formId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `form-${formId}-responses.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Unable to export responses.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#f7f7f5] text-brand-ink">
@@ -81,6 +99,14 @@ export function ResultsPage({ formId }: { formId: number }) {
             Dashboard
           </Link>
           <nav className="flex items-center gap-4 text-sm">
+            <button
+              onClick={handleExport}
+              disabled={isExporting || results.response_count === 0}
+              className="inline-flex items-center gap-2 rounded-md px-3 py-2 font-medium text-black/65 transition hover:bg-black/[0.04] hover:text-black disabled:opacity-40"
+            >
+              {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Export CSV
+            </button>
             <Link href={`/forms/${results.id}/builder`} className="rounded-md px-3 py-2 font-medium text-black/65 transition hover:bg-black/[0.04] hover:text-black">
               Builder
             </Link>

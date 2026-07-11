@@ -16,5 +16,7 @@ class QuestionType(StrEnum):
     LONG_TEXT = "long_text"
     EMAIL = "email"
     MULTIPLE_CHOICE = "multiple_choice"
+    DROPDOWN = "dropdown"
+    NUMBER = "number"
     RATING = "rating"
     BOOLEAN = "boolean"

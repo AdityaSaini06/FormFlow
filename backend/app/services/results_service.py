@@ -1,3 +1,6 @@
+import csv
+from io import StringIO
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -50,6 +53,35 @@ def get_form_results(db: Session, form_id: int) -> FormResultsRead:
     )
 
 
+def export_form_responses(db: Session, form_id: int) -> str:
+    form = db.scalar(
+        select(Form)
+        .options(
+            selectinload(Form.questions),
+            selectinload(Form.responses).selectinload(Response.answers).selectinload(Answer.question_option),
+        )
+        .where(Form.id == form_id)
+    )
+    if form is None:
+        raise NotFoundError("Form not found.")
+
+    questions = sorted(form.questions, key=lambda question: question.position)
+    output = StringIO(newline="")
+    writer = csv.writer(output)
+    writer.writerow(["Response ID", "Submitted At", "Completion Time (seconds)", *[_csv_safe(q.title) for q in questions]])
+
+    for response in sorted(form.responses, key=lambda item: item.submitted_at):
+        answers = {answer.question_id: _csv_safe(_answer_value(answer)) for answer in response.answers}
+        writer.writerow([
+            response.id,
+            response.submitted_at.isoformat(),
+            response.completion_time_seconds if response.completion_time_seconds is not None else "",
+            *[answers.get(question.id, "") for question in questions],
+        ])
+
+    return output.getvalue()
+
+
 def _answers_by_question(responses: list[Response]) -> dict[int, list[Answer]]:
     grouped: dict[int, list[Answer]] = {}
     for response in responses:
@@ -77,7 +109,7 @@ def _question_summary(question: Question, answers: list[Answer]) -> QuestionResu
 
 
 def _option_summaries(question: Question, answers: list[Answer]) -> list[ResultOptionSummary]:
-    if question.type == QuestionType.MULTIPLE_CHOICE:
+    if question.type in {QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN}:
         return [
             _option_summary(option.id, option.label, _count_option_answers(answers, option.id), len(answers))
             for option in question.options
@@ -157,5 +189,9 @@ def _average_int(values: list[int]) -> int | None:
     return round(sum(values) / len(values)) if values else None
 
 
-def _average_float(values: list[int]) -> float | None:
+def _average_float(values: list[float]) -> float | None:
     return round(sum(values) / len(values), 1) if values else None
+
+
+def _csv_safe(value: str) -> str:
+    return f"'{value}" if value.startswith(("=", "+", "-", "@")) else value

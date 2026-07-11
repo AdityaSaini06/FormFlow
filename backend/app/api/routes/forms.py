@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -52,6 +53,20 @@ def get_form_results(form_id: int, db: DBSession) -> FormResultsRead:
         return results_service.get_form_results(db, form_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/{form_id}/results/export")
+def export_form_results(form_id: int, db: DBSession) -> Response:
+    try:
+        content = results_service.export_form_responses(db, form_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="form-{form_id}-responses.csv"'},
+    )
 
 
 @router.patch("/{form_id}", response_model=FormRead)

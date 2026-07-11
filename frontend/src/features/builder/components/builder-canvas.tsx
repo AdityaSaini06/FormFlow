@@ -1,4 +1,4 @@
-import { Mail, Star } from "lucide-react";
+import { Hash, Mail, Star } from "lucide-react";
 
 import { getQuestionTitleLabel, isPlaceholderQuestionTitle } from "@/features/builder/question-title";
 import type { FormBuilder } from "@/types/forms";
@@ -61,6 +61,15 @@ function QuestionPreview({ question }: { question: Question }) {
     );
   }
 
+  if (question.type === "dropdown") {
+    return (
+      <select disabled className="h-12 w-full rounded-md border border-black/10 bg-white px-4 text-sm text-black/55">
+        <option>Select an option</option>
+        {question.options.map((option) => <option key={option.id}>{option.label}</option>)}
+      </select>
+    );
+  }
+
   if (question.type === "rating") {
     return (
       <div className="flex gap-2">
@@ -77,6 +86,7 @@ function QuestionPreview({ question }: { question: Question }) {
     <div className="rounded-md border border-black/10 px-5 py-5">
       <div className="flex items-center gap-3 border-b border-black/15 pb-3 text-sm text-black/35">
         {question.type === "email" ? <Mail className="h-4 w-4" /> : null}
+        {question.type === "number" ? <Hash className="h-4 w-4" /> : null}
         {question.placeholder ?? "Type your answer here..."}
       </div>
     </div>

@@ -337,6 +337,28 @@ function QuestionInput({ answer, error, question, onAnswer }: QuestionInputProps
     );
   }
 
+  if (question.type === "dropdown") {
+    return (
+      <select
+        autoFocus
+        value={answer?.question_option_id ?? ""}
+        onChange={(event) =>
+          onAnswer({
+            question_id: question.id,
+            question_option_id: event.target.value ? Number(event.target.value) : undefined,
+          })
+        }
+        aria-invalid={Boolean(error)}
+        className="h-14 w-full max-w-2xl rounded-md border border-black/15 bg-white px-4 text-lg outline-none focus:border-black"
+      >
+        <option value="">Select an option</option>
+        {question.options.map((option) => (
+          <option key={option.id} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+    );
+  }
+
   if (question.type === "rating") {
     return (
       <div className="flex flex-wrap gap-3">
@@ -377,6 +399,27 @@ function QuestionInput({ answer, error, question, onAnswer }: QuestionInputProps
           </button>
         ))}
       </div>
+    );
+  }
+
+  if (question.type === "number") {
+    return (
+      <input
+        autoFocus
+        value={answer?.number_value ?? ""}
+        onChange={(event) =>
+          onAnswer({
+            question_id: question.id,
+            number_value: event.target.value === "" ? undefined : Number(event.target.value),
+          })
+        }
+        placeholder={question.placeholder ?? "Type a number..."}
+        type="number"
+        inputMode="decimal"
+        step="any"
+        aria-invalid={Boolean(error)}
+        className="w-full max-w-2xl border-b border-black/20 bg-transparent py-3 text-xl outline-none placeholder:text-black/35 focus:border-black sm:text-2xl"
+      />
     );
   }
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import DateTime, Float, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -29,7 +29,7 @@ class Answer(Base):
         nullable=True,
     )
     text_value: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    number_value: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    number_value: Mapped[float | None] = mapped_column(Float, nullable=True)
     boolean_value: Mapped[bool | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
