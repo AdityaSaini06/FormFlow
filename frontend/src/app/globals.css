@@ -16,6 +16,8 @@ body {
   margin: 0;
   background: #f7f7f5;
   color: #191919;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -23,4 +25,43 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+::selection {
+  background: #bdebf2;
+  color: #102a2e;
+}
+
+:focus-visible {
+  outline: 2px solid #007b8f;
+  outline-offset: 3px;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panel-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter { animation: page-enter 280ms ease-out both; }
+.panel-enter { animation: panel-enter 180ms ease-out both; }
+.toast-enter { animation: toast-enter 180ms ease-out both; }
+details[open] .menu-enter { animation: panel-enter 140ms ease-out both; transform-origin: top right; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

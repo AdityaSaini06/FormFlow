@@ -5,12 +5,12 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition duration-150 active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        primary: "bg-brand-ink text-white hover:bg-black focus-visible:outline-brand-ink",
-        secondary: "border border-black/10 bg-white text-brand-ink hover:bg-black/[0.04] focus-visible:outline-brand-ink",
+        primary: "bg-brand-ink text-white shadow-sm hover:bg-black hover:shadow-md focus-visible:outline-brand-ink",
+        secondary: "border border-black/10 bg-white text-brand-ink shadow-sm hover:border-black/20 hover:bg-black/[0.03] focus-visible:outline-brand-ink",
       },
     },
     defaultVariants: {

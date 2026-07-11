@@ -273,7 +273,7 @@ export function BuilderPage({ formId }: { formId: number }) {
     );
   }
 
-  if (error || !form) {
+  if (!form) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#f4f4f2] px-6 text-brand-ink">
         <div className="flex max-w-md items-center gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -286,15 +286,13 @@ export function BuilderPage({ formId }: { formId: number }) {
 
   return (
     <main className="min-h-screen bg-[#f4f4f2] text-brand-ink">
-      <header className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-30 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-black/10 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="text-xl font-semibold">FormFlow</div>
         <nav className="hidden justify-center gap-8 text-sm lg:flex">
           <Link href="/" className="pb-2 text-black/60 transition hover:text-black">
             Dashboard
           </Link>
           <span className="border-b border-black pb-2 font-semibold">Create</span>
-          <span className="pb-2 text-black/60">Connect</span>
-          <span className="pb-2 text-black/60">Share</span>
           <Link href={`/forms/${form.id}/results`} className="pb-2 text-black/60 transition hover:text-black">
             Results
           </Link>
@@ -307,7 +305,7 @@ export function BuilderPage({ formId }: { formId: number }) {
             <SlidersHorizontal className="h-4 w-4" />
           </button>
           {notice ? (
-            <span className="absolute right-0 top-11 z-20 flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-xs font-medium shadow-sm">
+            <span className="toast-enter absolute right-0 top-11 z-20 flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-xs font-medium shadow-lg">
               <Check className="h-3.5 w-3.5" />
               {notice}
             </span>
@@ -341,7 +339,7 @@ export function BuilderPage({ formId }: { formId: number }) {
 
       {mobilePanel ? <button onClick={() => setMobilePanel(null)} className="fixed inset-0 z-40 bg-black/30 xl:hidden" aria-label="Close panel" /> : null}
 
-      <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 xl:grid-cols-[260px_1fr_300px]">
+      <section className="page-enter grid min-h-[calc(100vh-4rem)] grid-cols-1 xl:grid-cols-[260px_1fr_300px]">
         <div className={mobilePanel === "questions" ? "fixed inset-y-0 left-0 z-50 w-[min(320px,90vw)] overflow-y-auto bg-white xl:static xl:z-auto xl:w-auto" : "hidden xl:block"}>
           <div className="flex h-14 items-center justify-between border-b border-black/10 px-4 xl:hidden">
             <span className="font-semibold">Questions</span>
@@ -387,6 +385,14 @@ export function BuilderPage({ formId }: { formId: number }) {
           />
         </div>
       </section>
+
+      {error ? (
+        <div role="alert" className="toast-enter fixed bottom-6 left-6 z-50 flex max-w-sm items-center gap-3 rounded-md border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-lg">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="flex-1">{error}</span>
+          <button onClick={() => setError(null)} aria-label="Dismiss error" className="grid h-7 w-7 place-items-center rounded hover:bg-red-50"><X className="h-4 w-4" /></button>
+        </div>
+      ) : null}
     </main>
   );
 }

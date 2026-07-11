@@ -56,9 +56,9 @@ function FormRow({
   const Icon = FORM_ICONS[iconIndex % FORM_ICONS.length];
 
   return (
-    <article className="grid min-h-24 grid-cols-[minmax(0,1fr)_44px] items-center border-b border-black/[0.06] px-4 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_100px_44px] md:grid-cols-[minmax(0,1fr)_100px_90px_44px] lg:grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] lg:px-9">
+    <article className="grid min-h-24 grid-cols-[minmax(0,1fr)_44px] items-center border-b border-black/[0.06] px-4 transition-colors duration-150 last:border-b-0 hover:bg-[#fafcfc] sm:grid-cols-[minmax(0,1fr)_100px_44px] md:grid-cols-[minmax(0,1fr)_100px_90px_44px] lg:grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] lg:px-9">
       <div className="flex min-w-0 items-center gap-5">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-cyan-50 text-[#007b8f]">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-cyan-100 bg-cyan-50 text-[#007b8f] shadow-sm">
           <Icon className="h-5 w-5" />
         </div>
         <Link href={`/forms/${form.id}/builder`} className="min-w-0 rounded-sm focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black">
@@ -94,7 +94,7 @@ function FormRow({
         >
           <MoreVertical className="h-4 w-4" />
         </summary>
-        <div className="absolute right-0 top-10 z-20 w-44 rounded-md border border-black/10 bg-white p-1 shadow-lg">
+        <div className="menu-enter absolute right-0 top-10 z-20 w-44 rounded-md border border-black/10 bg-white p-1 shadow-xl">
           <Link href={`/forms/${form.id}/builder`} className="flex h-9 items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
             <Edit3 className="h-4 w-4" /> Edit form
           </Link>

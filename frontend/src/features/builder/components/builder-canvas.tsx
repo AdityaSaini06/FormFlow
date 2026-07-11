@@ -12,7 +12,7 @@ type BuilderCanvasProps = {
 export function BuilderCanvas({ form, question }: BuilderCanvasProps) {
   if (!question) {
     return (
-      <section className="w-full max-w-2xl rounded-lg border border-black/10 bg-white px-5 py-10 text-center shadow-sm sm:px-10 sm:py-12">
+      <section className="w-full max-w-2xl rounded-lg border border-black/10 bg-white px-5 py-10 text-center shadow-[0_12px_35px_rgba(15,23,42,0.06)] sm:px-10 sm:py-12">
         <p className="text-sm font-semibold text-black/45">{form.title}</p>
         <h1 className="mt-4 text-3xl font-semibold">Start by adding a question</h1>
       </section>
@@ -23,7 +23,7 @@ export function BuilderCanvas({ form, question }: BuilderCanvasProps) {
   const isPlaceholderTitle = isPlaceholderQuestionTitle(question.title);
 
   return (
-    <section className="w-full max-w-2xl rounded-lg border border-black/10 bg-white px-5 py-8 shadow-sm sm:px-11 sm:py-10">
+    <section className="w-full max-w-2xl rounded-lg border border-black/10 bg-white px-5 py-8 shadow-[0_12px_35px_rgba(15,23,42,0.06)] sm:px-11 sm:py-10">
       <div className="mb-8 flex justify-center">
         <span className="rounded-full bg-black px-4 py-1 text-xs font-semibold text-white">
           Question {question.position}

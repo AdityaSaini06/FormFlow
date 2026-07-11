@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, BarChart3, ChevronDown, Clock, Download, ExternalLink, Inbox, Loader2, Users } from "lucide-react";
+import { AlertCircle, ArrowLeft, BarChart3, ChevronDown, Clock, Download, ExternalLink, Inbox, Loader2, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -79,7 +79,7 @@ export function ResultsPage({ formId }: { formId: number }) {
     );
   }
 
-  if (error || !results) {
+  if (!results) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#f7f7f5] px-6 text-brand-ink">
         <div className="flex max-w-md items-center gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -92,7 +92,7 @@ export function ResultsPage({ formId }: { formId: number }) {
 
   return (
     <main className="min-h-screen bg-[#f7f7f5] text-brand-ink">
-      <header className="border-b border-black/10 bg-white">
+      <header className="sticky top-0 z-20 border-b border-black/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6">
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
             <ArrowLeft className="h-4 w-4" />
@@ -118,7 +118,7 @@ export function ResultsPage({ formId }: { formId: number }) {
         </div>
       </header>
 
-      <section className="mx-auto w-full max-w-6xl px-6 py-10">
+      <section className="page-enter mx-auto w-full max-w-6xl px-6 py-10">
         <div className="flex flex-col justify-between gap-6 border-b border-black/10 pb-8 md:flex-row md:items-end">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/45">
@@ -181,13 +181,21 @@ export function ResultsPage({ formId }: { formId: number }) {
           </div>
         )}
       </section>
+
+      {error ? (
+        <div role="alert" className="toast-enter fixed bottom-6 left-6 z-50 flex max-w-sm items-center gap-3 rounded-md border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-lg">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="flex-1">{error}</span>
+          <button onClick={() => setError(null)} aria-label="Dismiss error" className="grid h-7 w-7 place-items-center rounded hover:bg-red-50"><X className="h-4 w-4" /></button>
+        </div>
+      ) : null}
     </main>
   );
 }
 
 function StatCard({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-black/10 bg-white p-5">
+    <div className="rounded-lg border border-black/10 bg-white p-5 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-black/15 hover:shadow-md">
       <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-normal text-black/45">
         <Icon className="h-4 w-4" />
         {label}
@@ -199,7 +207,7 @@ function StatCard({ icon: Icon, label, value }: { icon: typeof Users; label: str
 
 function QuestionSummary({ question }: { question: QuestionResultSummary }) {
   return (
-    <article className="rounded-lg border border-black/10 bg-white p-6">
+    <article className="rounded-lg border border-black/10 bg-white p-6 shadow-sm transition duration-150 hover:border-black/15 hover:shadow-md">
       <div className="flex flex-col justify-between gap-2 md:flex-row md:items-start">
         <div>
           <h2 className="text-base font-semibold">{question.title}</h2>

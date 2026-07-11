@@ -114,7 +114,7 @@ export function DashboardPage() {
     <main className="min-h-screen bg-[#f7f7f5] text-brand-ink">
       <TopNav />
 
-      <section className="mx-auto w-full max-w-5xl px-6 py-16">
+      <section className="page-enter mx-auto w-full max-w-5xl px-6 py-16">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-normal text-black/45">
@@ -131,9 +131,10 @@ export function DashboardPage() {
         </div>
 
         {error ? (
-          <div className="mt-8 flex items-center gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div role="alert" className="mt-8 flex items-center gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             <AlertCircle className="h-4 w-4" />
-            {error}
+            <span className="flex-1">{error}</span>
+            <button onClick={() => setError(null)} aria-label="Dismiss error" className="grid h-7 w-7 place-items-center rounded hover:bg-red-100"><X className="h-4 w-4" /></button>
           </div>
         ) : null}
 
@@ -147,19 +148,19 @@ export function DashboardPage() {
       </section>
 
       {notice ? (
-        <div className="fixed bottom-6 right-6 flex items-center gap-2 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-medium shadow-lg">
+        <div className="toast-enter fixed bottom-6 right-6 flex items-center gap-2 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-medium shadow-lg">
           <Check className="h-4 w-4" /> {notice}
         </div>
       ) : null}
 
       {showCreateModal ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-black/35 px-4" role="dialog" aria-modal="true" aria-labelledby="create-form-title">
+        <div className="fixed inset-0 z-40 grid place-items-center bg-black/35 px-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="create-form-title">
           <form
             onSubmit={(event) => {
               event.preventDefault();
               void handleCreateForm();
             }}
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+            className="panel-enter w-full max-w-md rounded-lg border border-black/10 bg-white p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -190,8 +191,8 @@ export function DashboardPage() {
       ) : null}
 
       {deleteTarget ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-black/35 px-4" role="dialog" aria-modal="true" aria-labelledby="delete-form-title">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-40 grid place-items-center bg-black/35 px-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="delete-form-title">
+          <div className="panel-enter w-full max-w-md rounded-lg border border-black/10 bg-white p-6 shadow-2xl">
             <h2 id="delete-form-title" className="text-xl font-semibold">Delete {deleteTarget.title}?</h2>
             <p className="mt-3 text-sm leading-6 text-black/60">This permanently removes the form, its questions, and all collected responses.</p>
             <div className="mt-6 flex justify-end gap-3">
