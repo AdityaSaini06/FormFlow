@@ -182,7 +182,7 @@ function EmptyState({ onCreateForm }: { onCreateForm: () => void }) {
 function formatRelativeDate(value: string) {
   if (!value) return "";
   let dateStr = value;
-  if (!value.endsWith("Z") && !value.includes("+") && !value.includes("-")) {
+  if (!/Z$|[+-]\d{2}(:?\d{2})?$/.test(value)) {
     dateStr = value.includes("T") ? `${value}Z` : `${value.replace(" ", "T")}Z`;
   }
   const updatedAt = new Date(dateStr).getTime();
