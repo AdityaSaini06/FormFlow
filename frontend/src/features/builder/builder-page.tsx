@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Check, Copy, Loader2, Plus } from "lucide-react";
+import { AlertCircle, Check, Copy, List, Loader2, Plus, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -27,6 +27,7 @@ export function BuilderPage({ formId }: { formId: number }) {
   const [isCreating, setIsCreating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<"questions" | "settings" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -285,9 +286,9 @@ export function BuilderPage({ formId }: { formId: number }) {
 
   return (
     <main className="min-h-screen bg-[#f4f4f2] text-brand-ink">
-      <header className="grid h-16 grid-cols-[240px_1fr_330px] items-center border-b border-black/10 bg-white px-6">
+      <header className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:px-6">
         <div className="text-xl font-semibold">FormFlow</div>
-        <nav className="flex justify-center gap-10 text-sm">
+        <nav className="hidden justify-center gap-8 text-sm lg:flex">
           <Link href="/" className="pb-2 text-black/60 transition hover:text-black">
             Dashboard
           </Link>
@@ -298,7 +299,13 @@ export function BuilderPage({ formId }: { formId: number }) {
             Results
           </Link>
         </nav>
-        <div className="relative flex justify-end gap-2">
+        <div className="relative flex items-center justify-end gap-2">
+          <button onClick={() => setMobilePanel("questions")} className="grid h-9 w-9 place-items-center rounded-md bg-black/[0.04] xl:hidden" aria-label="Open questions">
+            <List className="h-4 w-4" />
+          </button>
+          <button onClick={() => setMobilePanel("settings")} className="grid h-9 w-9 place-items-center rounded-md bg-black/[0.04] xl:hidden" aria-label="Open question settings">
+            <SlidersHorizontal className="h-4 w-4" />
+          </button>
           {notice ? (
             <span className="absolute right-0 top-11 z-20 flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-xs font-medium shadow-sm">
               <Check className="h-3.5 w-3.5" />
@@ -309,13 +316,13 @@ export function BuilderPage({ formId }: { formId: number }) {
             onClick={handleCopyLink}
             disabled={form.status !== "published"}
             title={form.status === "published" ? "Copy public link" : "Publish before sharing"}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-black/[0.04] px-3 text-sm font-semibold disabled:opacity-40"
+            className="hidden h-9 items-center gap-2 rounded-md bg-black/[0.04] px-3 text-sm font-semibold disabled:opacity-40 sm:inline-flex"
           >
             <Copy className="h-4 w-4" />
             Share
           </button>
           <Link
-            className="inline-flex h-9 items-center rounded-md bg-black/[0.04] px-5 text-sm font-semibold"
+            className="hidden h-9 items-center rounded-md bg-black/[0.04] px-5 text-sm font-semibold sm:inline-flex"
             href={`/to/${form.slug}`}
             target="_blank"
           >
@@ -332,18 +339,29 @@ export function BuilderPage({ formId }: { formId: number }) {
         </div>
       </header>
 
-      <section className="grid min-h-[calc(100vh-4rem)] grid-cols-[260px_1fr_300px]">
-        <BuilderSidebar
-          form={form}
-          selectedQuestionId={selectedQuestionId}
-          isCreating={isCreating}
-          onAddQuestion={handleCreateQuestion}
-          onReorderQuestions={handleReorderQuestions}
-          onSelectQuestion={setSelectedQuestionId}
-          onUpdateForm={handleUpdateForm}
-        />
+      {mobilePanel ? <button onClick={() => setMobilePanel(null)} className="fixed inset-0 z-40 bg-black/30 xl:hidden" aria-label="Close panel" /> : null}
 
-        <div className="flex flex-col items-center px-6 py-10">
+      <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 xl:grid-cols-[260px_1fr_300px]">
+        <div className={mobilePanel === "questions" ? "fixed inset-y-0 left-0 z-50 w-[min(320px,90vw)] overflow-y-auto bg-white xl:static xl:z-auto xl:w-auto" : "hidden xl:block"}>
+          <div className="flex h-14 items-center justify-between border-b border-black/10 px-4 xl:hidden">
+            <span className="font-semibold">Questions</span>
+            <button onClick={() => setMobilePanel(null)} className="grid h-8 w-8 place-items-center rounded-md hover:bg-black/[0.04]" aria-label="Close questions"><X className="h-4 w-4" /></button>
+          </div>
+          <BuilderSidebar
+            form={form}
+            selectedQuestionId={selectedQuestionId}
+            isCreating={isCreating}
+            onAddQuestion={handleCreateQuestion}
+            onReorderQuestions={handleReorderQuestions}
+            onSelectQuestion={(questionId) => {
+              setSelectedQuestionId(questionId);
+              setMobilePanel(null);
+            }}
+            onUpdateForm={handleUpdateForm}
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col items-center px-4 py-6 sm:px-6 sm:py-10">
           <BuilderCanvas form={form} question={selectedQuestion} />
           <button
             onClick={handleCreateQuestion}
@@ -355,13 +373,19 @@ export function BuilderPage({ formId }: { formId: number }) {
           </button>
         </div>
 
-        <BuilderSettingsPanel
-          question={selectedQuestion}
-          onDeleteQuestion={handleDeleteQuestion}
-          onDuplicateQuestion={handleDuplicateQuestion}
-          onDraftQuestionChange={handleDraftQuestionChange}
-          onUpdateQuestion={handleUpdateQuestion}
-        />
+        <div className={mobilePanel === "settings" ? "fixed inset-y-0 right-0 z-50 w-[min(360px,92vw)] overflow-y-auto bg-white xl:static xl:z-auto xl:w-auto" : "hidden xl:block"}>
+          <div className="flex h-14 items-center justify-between border-b border-black/10 px-4 xl:hidden">
+            <span className="font-semibold">Question settings</span>
+            <button onClick={() => setMobilePanel(null)} className="grid h-8 w-8 place-items-center rounded-md hover:bg-black/[0.04]" aria-label="Close settings"><X className="h-4 w-4" /></button>
+          </div>
+          <BuilderSettingsPanel
+            question={selectedQuestion}
+            onDeleteQuestion={handleDeleteQuestion}
+            onDuplicateQuestion={handleDuplicateQuestion}
+            onDraftQuestionChange={handleDraftQuestionChange}
+            onUpdateQuestion={handleUpdateQuestion}
+          />
+        </div>
       </section>
     </main>
   );

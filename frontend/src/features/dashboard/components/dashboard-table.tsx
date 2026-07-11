@@ -17,7 +17,7 @@ type DashboardTableProps = {
 export function DashboardTable({ forms, isLoading, onCreateForm, onDeleteForm, onDuplicateForm }: DashboardTableProps) {
   return (
     <div className="mt-10 rounded-lg border border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.06)]">
-      <div className="grid grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] border-b border-black/10 px-9 py-5 text-xs font-semibold text-black/70">
+      <div className="hidden grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] border-b border-black/10 px-9 py-5 text-xs font-semibold text-black/70 lg:grid">
         <span>Name</span>
         <span>Status</span>
         <span>Responses</span>
@@ -56,7 +56,7 @@ function FormRow({
   const Icon = FORM_ICONS[iconIndex % FORM_ICONS.length];
 
   return (
-    <article className="grid min-h-24 grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] items-center border-b border-black/[0.06] px-9 last:border-b-0">
+    <article className="grid min-h-24 grid-cols-[minmax(0,1fr)_44px] items-center border-b border-black/[0.06] px-4 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_100px_44px] md:grid-cols-[minmax(0,1fr)_100px_90px_44px] lg:grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] lg:px-9">
       <div className="flex min-w-0 items-center gap-5">
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-cyan-50 text-[#007b8f]">
           <Icon className="h-5 w-5" />
@@ -67,16 +67,27 @@ function FormRow({
         </Link>
       </div>
 
-      <StatusBadge status={form.status} />
+      <div className="hidden sm:block"><StatusBadge status={form.status} /></div>
       <Link
         href={`/forms/${form.id}/results`}
-        className="w-fit rounded-sm text-sm tabular-nums underline-offset-4 hover:underline focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black"
+        className="hidden w-fit rounded-sm text-sm tabular-nums underline-offset-4 hover:underline focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-black md:block"
       >
         {form.response_count.toLocaleString()}
       </Link>
-      <span className="text-sm text-black/70">{formatRelativeDate(form.updated_at)}</span>
+      <span className="hidden text-sm text-black/70 lg:block">{formatRelativeDate(form.updated_at)}</span>
 
-      <details className="group relative">
+      <details
+        className="group relative"
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("open");
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.currentTarget.removeAttribute("open");
+            event.currentTarget.querySelector("summary")?.focus();
+          }
+        }}
+      >
         <summary
           className="grid h-9 w-9 cursor-pointer list-none place-items-center rounded-md text-black/65 transition hover:bg-black/[0.04] hover:text-black"
           aria-label={`Open actions for ${form.title}`}
@@ -90,10 +101,16 @@ function FormRow({
           <Link href={`/forms/${form.id}/results`} className="flex h-9 items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
             <BarChart3 className="h-4 w-4" /> View results
           </Link>
-          <button onClick={() => onDuplicateForm(form)} className="flex h-9 w-full items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
+          <button onClick={(event) => {
+            event.currentTarget.closest("details")?.removeAttribute("open");
+            onDuplicateForm(form);
+          }} className="flex h-9 w-full items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
             <Copy className="h-4 w-4" /> Duplicate
           </button>
-          <button onClick={() => onDeleteForm(form)} className="flex h-9 w-full items-center gap-2 rounded px-3 text-sm text-red-600 hover:bg-red-50">
+          <button onClick={(event) => {
+            event.currentTarget.closest("details")?.removeAttribute("open");
+            onDeleteForm(form);
+          }} className="flex h-9 w-full items-center gap-2 rounded px-3 text-sm text-red-600 hover:bg-red-50">
             <Trash2 className="h-4 w-4" /> Delete
           </button>
         </div>

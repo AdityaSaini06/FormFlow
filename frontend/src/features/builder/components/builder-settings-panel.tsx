@@ -46,6 +46,7 @@ export function BuilderSettingsPanel({
   onDraftQuestionChange,
   onUpdateQuestion,
 }: BuilderSettingsPanelProps) {
+  const [activeTab, setActiveTab] = useState<"design" | "logic" | "ai">("design");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [placeholder, setPlaceholder] = useState("");
@@ -122,12 +123,18 @@ export function BuilderSettingsPanel({
   return (
     <aside className="border-l border-black/10 bg-white">
       <div className="grid grid-cols-3 border-b border-black/10 text-sm">
-        <button className="border-b border-black py-4 font-semibold">Design</button>
-        <button className="py-4 text-black/60">Logic</button>
-        <button className="py-4 text-black/60">AI</button>
+        {(["design", "logic", "ai"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "border-b border-black py-4 font-semibold capitalize" : "py-4 capitalize text-black/60"}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {question ? (
+      {activeTab === "design" ? question ? (
         <div className="space-y-7 p-6">
           <section className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-normal text-black/55">Content</p>
@@ -264,9 +271,19 @@ export function BuilderSettingsPanel({
         </div>
       ) : (
         <div className="p-6 text-sm text-black/55">Select a question to edit its settings.</div>
+      ) : (
+        <div className="p-6">
+          <p className="text-xs font-semibold uppercase tracking-normal text-black/45">Coming Soon</p>
+          <h2 className="mt-3 text-lg font-semibold">{activeTab === "logic" ? "Logic and branching" : "AI form assistant"}</h2>
+          <p className="mt-2 text-sm leading-6 text-black/55">
+            {activeTab === "logic"
+              ? "Route respondents to different questions based on their answers."
+              : "Generate and refine questions from a short description."}
+          </p>
+        </div>
       )}
 
-      <div className="flex gap-5 border-t border-black/10 p-6">
+      {activeTab === "design" ? <div className="flex gap-5 border-t border-black/10 p-6">
         <button
           disabled={!question}
           onClick={() => question && onDuplicateQuestion(question)}
@@ -283,7 +300,7 @@ export function BuilderSettingsPanel({
           <Trash2 className="h-4 w-4" />
           Delete
         </button>
-      </div>
+      </div> : null}
     </aside>
   );
 }

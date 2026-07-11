@@ -93,12 +93,12 @@ export function ResultsPage({ formId }: { formId: number }) {
   return (
     <main className="min-h-screen bg-[#f7f7f5] text-brand-ink">
       <header className="border-b border-black/10 bg-white">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6">
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
             <ArrowLeft className="h-4 w-4" />
             Dashboard
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
+          <nav className="flex w-full items-center justify-end gap-1 text-sm sm:w-auto sm:gap-4">
             <button
               onClick={handleExport}
               disabled={isExporting || results.response_count === 0}

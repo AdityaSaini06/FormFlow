@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Settings } from "lucide-react";
+import { GripVertical, MessageSquare, Palette, Plus, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getQuestionTitleLabel, isPlaceholderQuestionTitle } from "@/features/builder/question-title";
@@ -135,6 +135,16 @@ export function BuilderSidebar({
               onBlur={() => onUpdateForm({ description: description.trim() || null })}
               className="w-full resize-none rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-black"
             />
+            <div className="border-t border-black/10 pt-3">
+              <div className="flex items-center justify-between py-2 text-sm text-black/55">
+                <span className="flex items-center gap-2"><Palette className="h-4 w-4" /> Theme</span>
+                <span className="text-xs">Coming Soon</span>
+              </div>
+              <div className="flex items-center justify-between py-2 text-sm text-black/55">
+                <span className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Thank-you screen</span>
+                <span className="text-xs">Coming Soon</span>
+              </div>
+            </div>
           </div>
         ) : null}
       </div>
