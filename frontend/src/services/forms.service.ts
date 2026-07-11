@@ -15,3 +15,12 @@ export async function updateForm(formId: number, input: UpdateFormInput): Promis
   const response = await http.patch<FormRead>(`/forms/${formId}`, input);
   return response.data;
 }
+
+export async function duplicateForm(formId: number): Promise<FormListItem> {
+  const response = await http.post<FormRead>(`/forms/${formId}/duplicate`);
+  return { ...response.data, response_count: 0 };
+}
+
+export async function deleteForm(formId: number): Promise<void> {
+  await http.delete(`/forms/${formId}`);
+}

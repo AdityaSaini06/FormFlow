@@ -90,6 +90,12 @@ class ApiFlowTest(unittest.TestCase):
         self.assertEqual(export_response.status_code, 200)
         self.assertIn("test@example.com", export_response.text)
 
+        duplicate_response = self.client.post(f"/api/forms/{form['id']}/duplicate")
+        self.assertEqual(duplicate_response.status_code, 201)
+        duplicate_id = duplicate_response.json()["id"]
+        self.assertEqual(self.client.delete(f"/api/forms/{duplicate_id}").status_code, 204)
+        self.assertEqual(self.client.get(f"/api/forms/{duplicate_id}").status_code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()

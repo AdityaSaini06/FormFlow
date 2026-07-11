@@ -1,4 +1,4 @@
-import { Calendar, Inbox, MessageSquare, MoreVertical, Plus, Rocket } from "lucide-react";
+import { BarChart3, Calendar, Copy, Edit3, Inbox, MessageSquare, MoreVertical, Plus, Rocket, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,13 @@ type DashboardTableProps = {
   forms: FormListItem[];
   isLoading: boolean;
   onCreateForm: () => void;
+  onDeleteForm: (form: FormListItem) => void;
+  onDuplicateForm: (form: FormListItem) => void;
 };
 
-export function DashboardTable({ forms, isLoading, onCreateForm }: DashboardTableProps) {
+export function DashboardTable({ forms, isLoading, onCreateForm, onDeleteForm, onDuplicateForm }: DashboardTableProps) {
   return (
-    <div className="mt-10 overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.06)]">
+    <div className="mt-10 rounded-lg border border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.06)]">
       <div className="grid grid-cols-[1.6fr_0.7fr_0.7fr_0.8fr_44px] border-b border-black/10 px-9 py-5 text-xs font-semibold text-black/70">
         <span>Name</span>
         <span>Status</span>
@@ -26,13 +28,31 @@ export function DashboardTable({ forms, isLoading, onCreateForm }: DashboardTabl
       {isLoading ? <DashboardSkeleton /> : null}
       {!isLoading && forms.length === 0 ? <EmptyState onCreateForm={onCreateForm} /> : null}
       {!isLoading && forms.length > 0
-        ? forms.map((form, index) => <FormRow key={form.id} form={form} iconIndex={index} />)
+        ? forms.map((form, index) => (
+            <FormRow
+              key={form.id}
+              form={form}
+              iconIndex={index}
+              onDeleteForm={onDeleteForm}
+              onDuplicateForm={onDuplicateForm}
+            />
+          ))
         : null}
     </div>
   );
 }
 
-function FormRow({ form, iconIndex }: { form: FormListItem; iconIndex: number }) {
+function FormRow({
+  form,
+  iconIndex,
+  onDeleteForm,
+  onDuplicateForm,
+}: {
+  form: FormListItem;
+  iconIndex: number;
+  onDeleteForm: (form: FormListItem) => void;
+  onDuplicateForm: (form: FormListItem) => void;
+}) {
   const Icon = FORM_ICONS[iconIndex % FORM_ICONS.length];
 
   return (
@@ -56,12 +76,28 @@ function FormRow({ form, iconIndex }: { form: FormListItem; iconIndex: number })
       </Link>
       <span className="text-sm text-black/70">{formatRelativeDate(form.updated_at)}</span>
 
-      <button
-        className="grid h-9 w-9 place-items-center rounded-md text-black/65 transition hover:bg-black/[0.04] hover:text-black"
-        aria-label={`Open actions for ${form.title}`}
-      >
-        <MoreVertical className="h-4 w-4" />
-      </button>
+      <details className="group relative">
+        <summary
+          className="grid h-9 w-9 cursor-pointer list-none place-items-center rounded-md text-black/65 transition hover:bg-black/[0.04] hover:text-black"
+          aria-label={`Open actions for ${form.title}`}
+        >
+          <MoreVertical className="h-4 w-4" />
+        </summary>
+        <div className="absolute right-0 top-10 z-20 w-44 rounded-md border border-black/10 bg-white p-1 shadow-lg">
+          <Link href={`/forms/${form.id}/builder`} className="flex h-9 items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
+            <Edit3 className="h-4 w-4" /> Edit form
+          </Link>
+          <Link href={`/forms/${form.id}/results`} className="flex h-9 items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
+            <BarChart3 className="h-4 w-4" /> View results
+          </Link>
+          <button onClick={() => onDuplicateForm(form)} className="flex h-9 w-full items-center gap-2 rounded px-3 text-sm hover:bg-black/[0.04]">
+            <Copy className="h-4 w-4" /> Duplicate
+          </button>
+          <button onClick={() => onDeleteForm(form)} className="flex h-9 w-full items-center gap-2 rounded px-3 text-sm text-red-600 hover:bg-red-50">
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        </div>
+      </details>
     </article>
   );
 }
