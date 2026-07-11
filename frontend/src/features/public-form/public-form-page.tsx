@@ -10,6 +10,7 @@ import type { Question } from "@/types/questions";
 import type { PublicAnswerInput } from "@/types/responses";
 
 type AnswerMap = Record<number, PublicAnswerInput>;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function PublicFormPage({ slug }: { slug: string }) {
   const [form, setForm] = useState<FormBuilder | null>(null);
@@ -53,7 +54,7 @@ export function PublicFormPage({ slug }: { slug: string }) {
   const currentQuestion = questions[currentIndex] ?? null;
   const progress = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
-  const canContinue = currentQuestion ? isAnswered(currentQuestion, currentAnswer) : false;
+  const questionError = currentQuestion ? getQuestionError(currentQuestion, currentAnswer) : null;
 
   const responsePayload = useMemo(
     () => ({
@@ -84,8 +85,8 @@ export function PublicFormPage({ slug }: { slug: string }) {
       return;
     }
 
-    if (!canContinue) {
-      setError("Please answer this question before continuing.");
+    if (questionError) {
+      setError(questionError);
       return;
     }
 
@@ -106,6 +107,62 @@ export function PublicFormPage({ slug }: { slug: string }) {
       setIsSubmitting(false);
     }
   }
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (isSubmitted || isSubmitting) {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      const isTextInput = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA";
+      const isTextarea = target?.tagName === "TEXTAREA";
+
+      if (!isTextInput && currentQuestion?.type === "multiple_choice" && event.key.length === 1) {
+        const optionIndex = event.key.toUpperCase().charCodeAt(0) - 65;
+        const option = currentQuestion.options[optionIndex];
+        if (option) {
+          event.preventDefault();
+          setAnswer(currentQuestion, { question_id: currentQuestion.id, question_option_id: option.id });
+          return;
+        }
+      }
+
+      if (!isTextInput && currentQuestion?.type === "rating" && /^[1-5]$/.test(event.key)) {
+        event.preventDefault();
+        setAnswer(currentQuestion, { question_id: currentQuestion.id, number_value: Number(event.key) });
+        return;
+      }
+
+      if (!isTextInput && currentQuestion?.type === "boolean" && ["y", "n"].includes(event.key.toLowerCase())) {
+        event.preventDefault();
+        setAnswer(currentQuestion, { question_id: currentQuestion.id, boolean_value: event.key.toLowerCase() === "y" });
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        goBack();
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        void continueOrSubmit();
+      }
+
+      if (event.key === "Enter") {
+        if (isTextarea && !event.ctrlKey && !event.metaKey) {
+          return;
+        }
+
+        event.preventDefault();
+        void continueOrSubmit();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   if (isLoading) {
     return (
@@ -156,7 +213,7 @@ export function PublicFormPage({ slug }: { slug: string }) {
 
   return (
     <main className="min-h-screen bg-white text-brand-ink">
-      <section className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-8 py-10">
+      <section className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-5 py-6 sm:px-8 sm:py-10">
         <div className="flex flex-1 items-center">
           <AnimatePresence mode="wait">
             <motion.div
@@ -167,14 +224,14 @@ export function PublicFormPage({ slug }: { slug: string }) {
               transition={{ duration: 0.22, ease: "easeOut" }}
               className="w-full"
             >
-              <div className="grid gap-8 md:grid-cols-[70px_1fr]">
-                <div className="flex items-start gap-3 pt-2 text-2xl font-semibold text-[#007b8f]">
+              <div className="grid gap-5 sm:grid-cols-[56px_1fr] md:gap-8 md:grid-cols-[70px_1fr]">
+                <div className="flex items-start gap-3 pt-1 text-xl font-semibold text-[#007b8f] md:pt-2 md:text-2xl">
                   <span>{currentQuestion.position}</span>
                   <ArrowDown className="mt-2 h-4 w-4 text-black/25" />
                 </div>
 
                 <div>
-                  <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-normal md:text-5xl">
+                  <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-normal sm:text-4xl md:text-5xl">
                     {currentQuestion.title}
                     {currentQuestion.is_required ? <span className="text-red-500"> *</span> : null}
                   </h1>
@@ -187,9 +244,9 @@ export function PublicFormPage({ slug }: { slug: string }) {
                   <div className="mt-10">
                     <QuestionInput
                       answer={currentAnswer}
+                      error={error}
                       question={currentQuestion}
                       onAnswer={(answer) => setAnswer(currentQuestion, answer)}
-                      onSubmit={continueOrSubmit}
                     />
                   </div>
 
@@ -205,7 +262,9 @@ export function PublicFormPage({ slug }: { slug: string }) {
                       {currentIndex === questions.length - 1 ? "Submit" : "OK"}
                       {!isSubmitting ? <Check className="h-4 w-4" /> : null}
                     </button>
-                    <span className="text-xs font-medium text-black/35">Press Enter</span>
+                    <span className="hidden text-xs font-medium text-black/35 sm:inline">
+                      {currentQuestion.type === "long_text" ? "Press Ctrl + Enter" : "Press Enter"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -213,7 +272,7 @@ export function PublicFormPage({ slug }: { slug: string }) {
           </AnimatePresence>
         </div>
 
-        <footer className="flex items-center justify-between border-t border-black/10 pt-5">
+        <footer className="flex items-center justify-between border-t border-black/10 pt-4 sm:pt-5">
           <div className="text-xs text-black/55">
             Powered by <span className="font-semibold text-black">FormFlow</span>
           </div>
@@ -244,17 +303,18 @@ export function PublicFormPage({ slug }: { slug: string }) {
 
 type QuestionInputProps = {
   answer: PublicAnswerInput | undefined;
+  error: string | null;
   question: Question;
   onAnswer: (answer: PublicAnswerInput) => void;
-  onSubmit: () => void;
 };
 
-function QuestionInput({ answer, question, onAnswer, onSubmit }: QuestionInputProps) {
+function QuestionInput({ answer, error, question, onAnswer }: QuestionInputProps) {
   if (question.type === "multiple_choice") {
     return (
       <div className="max-w-xl space-y-3">
-        {question.options.map((option) => {
+        {question.options.map((option, index) => {
           const isSelected = answer?.question_option_id === option.id;
+          const shortcut = String.fromCharCode(65 + index);
 
           return (
             <button
@@ -262,10 +322,13 @@ function QuestionInput({ answer, question, onAnswer, onSubmit }: QuestionInputPr
               onClick={() => onAnswer({ question_id: question.id, question_option_id: option.id })}
               className={
                 isSelected
-                  ? "flex min-h-12 w-full items-center rounded-md border border-[#007b8f] bg-cyan-50 px-4 text-left text-base font-semibold"
-                  : "flex min-h-12 w-full items-center rounded-md border border-black/10 px-4 text-left text-base transition hover:border-black/30"
+                  ? "flex min-h-12 w-full items-center gap-3 rounded-md border border-[#007b8f] bg-cyan-50 px-4 text-left text-base font-semibold"
+                  : "flex min-h-12 w-full items-center gap-3 rounded-md border border-black/10 px-4 text-left text-base transition hover:border-black/30"
               }
             >
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-black/[0.06] text-xs font-semibold text-black/55">
+                {shortcut}
+              </span>
               {option.label}
             </button>
           );
@@ -323,41 +386,45 @@ function QuestionInput({ answer, question, onAnswer, onSubmit }: QuestionInputPr
   if (isLongText) {
     return (
       <textarea
+        autoFocus
         value={answer?.text_value ?? ""}
         onChange={(event) => onAnswer({ question_id: question.id, text_value: event.target.value })}
         placeholder={placeholder}
         rows={4}
-        className="w-full max-w-2xl resize-none border-b border-black/20 bg-transparent py-3 text-2xl outline-none placeholder:text-black/35 focus:border-black"
+        aria-invalid={Boolean(error)}
+        className="w-full max-w-2xl resize-none border-b border-black/20 bg-transparent py-3 text-xl outline-none placeholder:text-black/35 focus:border-black sm:text-2xl"
       />
     );
   }
 
   return (
     <input
+      autoFocus
       value={answer?.text_value ?? ""}
       onChange={(event) => onAnswer({ question_id: question.id, text_value: event.target.value })}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          onSubmit();
-        }
-      }}
       placeholder={placeholder}
       type={question.type === "email" ? "email" : "text"}
-      className="w-full max-w-2xl border-b border-black/20 bg-transparent py-3 text-2xl outline-none placeholder:text-black/35 focus:border-black"
+      inputMode={question.type === "email" ? "email" : "text"}
+      aria-invalid={Boolean(error)}
+      className="w-full max-w-2xl border-b border-black/20 bg-transparent py-3 text-xl outline-none placeholder:text-black/35 focus:border-black sm:text-2xl"
     />
   );
 }
 
-function isAnswered(question: Question, answer: PublicAnswerInput | undefined) {
-  if (!question.is_required) {
-    return true;
-  }
-
+function getQuestionError(question: Question, answer: PublicAnswerInput | undefined) {
   if (!answer) {
-    return false;
+    return question.is_required ? "This question is required." : null;
   }
 
-  return hasAnyAnswerValue(answer);
+  if (question.is_required && !hasAnyAnswerValue(answer)) {
+    return "This question is required.";
+  }
+
+  if (question.type === "email" && answer.text_value?.trim() && !EMAIL_PATTERN.test(answer.text_value.trim())) {
+    return "Enter a valid email address.";
+  }
+
+  return null;
 }
 
 function hasAnyAnswerValue(answer: PublicAnswerInput) {
