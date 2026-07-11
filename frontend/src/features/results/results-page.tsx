@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, BarChart3, Clock, ExternalLink, Inbox, Loader2, Users } from "lucide-react";
+import { AlertCircle, ArrowLeft, BarChart3, ChevronDown, Clock, ExternalLink, Inbox, Loader2, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -127,20 +127,28 @@ export function ResultsPage({ formId }: { formId: number }) {
               </div>
               <div className="divide-y divide-black/[0.06]">
                 {results.recent_responses.map((response) => (
-                  <article key={response.id} className="px-5 py-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold">Response #{response.id}</p>
-                      <p className="text-xs text-black/45">{formatDateTime(response.submitted_at)}</p>
-                    </div>
-                    <p className="mt-1 text-xs text-black/45">{formatDuration(response.completion_time_seconds)}</p>
-                    <div className="mt-3 space-y-2">
-                      {response.answers.slice(0, 3).map((answer) => (
-                        <p key={`${response.id}-${answer.question_id}`} className="truncate text-xs text-black/65">
-                          <span className="font-semibold text-black/80">{answer.question_title}:</span> {answer.value}
+                  <details key={response.id} className="group px-5 py-4">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold">Response #{response.id}</p>
+                        <p className="mt-1 text-xs text-black/45">
+                          {formatDateTime(response.submitted_at)} / {formatDuration(response.completion_time_seconds)}
                         </p>
+                      </div>
+                      <ChevronDown className="h-4 w-4 shrink-0 text-black/40 transition group-open:rotate-180" />
+                    </summary>
+                    <div className="mt-4 space-y-4 border-t border-black/[0.06] pt-4">
+                      {response.answers.map((answer) => (
+                        <div key={`${response.id}-${answer.question_id}`}>
+                          <p className="text-xs font-semibold text-black/55">{answer.question_title}</p>
+                          <p className="mt-1 break-words text-sm text-black/80">{answer.value || "No answer"}</p>
+                        </div>
                       ))}
+                      {response.answers.length === 0 ? (
+                        <p className="text-sm text-black/45">No answers recorded.</p>
+                      ) : null}
                     </div>
-                  </article>
+                  </details>
                 ))}
               </div>
             </section>
