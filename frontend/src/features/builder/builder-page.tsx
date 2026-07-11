@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Loader2, Plus } from "lucide-react";
+import { AlertCircle, Check, Copy, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -13,8 +13,10 @@ import {
   getBuilderForm,
   publishForm,
   reorderQuestions,
+  unpublishForm,
   updateQuestion,
 } from "@/services/builder.service";
+import { updateForm } from "@/services/forms.service";
 import type { FormBuilder } from "@/types/forms";
 import type { Question, QuestionUpdateInput } from "@/types/questions";
 
@@ -24,6 +26,7 @@ export function BuilderPage({ formId }: { formId: number }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,6 +68,12 @@ export function BuilderPage({ formId }: { formId: number }) {
     [form, selectedQuestionId],
   );
 
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(null), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
+
   async function handleCreateQuestion() {
     setIsCreating(true);
     setError(null);
@@ -89,6 +98,38 @@ export function BuilderPage({ formId }: { formId: number }) {
       setError("Unable to add question.");
     } finally {
       setIsCreating(false);
+    }
+  }
+
+  async function handleDuplicateQuestion(question: Question) {
+    setIsCreating(true);
+    setError(null);
+    try {
+      const duplicate = await createQuestion(formId, {
+        type: question.type,
+        title: question.title.replace(/(?:\s+copy)+\s*$/i, ""),
+        description: question.description,
+        placeholder: question.placeholder,
+        is_required: question.is_required,
+        options: question.options.map(({ label, value }) => ({ label, value })),
+      });
+      setForm((current) =>
+        current ? { ...current, questions: [...current.questions, duplicate] } : current,
+      );
+      setSelectedQuestionId(duplicate.id);
+    } catch {
+      setError("Unable to duplicate question.");
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
+  async function handleUpdateForm(changes: { title?: string; description?: string | null }) {
+    try {
+      const updated = await updateForm(formId, changes);
+      setForm((current) => (current ? { ...current, ...updated } : current));
+    } catch {
+      setError("Unable to update form settings.");
     }
   }
 
@@ -187,10 +228,36 @@ export function BuilderPage({ formId }: { formId: number }) {
         published_at: publishedForm.published_at,
         updated_at: publishedForm.updated_at,
       });
+      setNotice("Form published");
     } catch {
       setError("Unable to publish form.");
     } finally {
       setIsPublishing(false);
+    }
+  }
+
+  async function handleUnpublishForm() {
+    if (!form) return;
+    setIsPublishing(true);
+    setError(null);
+    try {
+      const draft = await unpublishForm(form.id);
+      setForm({ ...form, status: draft.status, published_at: draft.published_at, updated_at: draft.updated_at });
+      setNotice("Form unpublished");
+    } catch {
+      setError("Unable to unpublish form.");
+    } finally {
+      setIsPublishing(false);
+    }
+  }
+
+  async function handleCopyLink() {
+    if (!form || form.status !== "published") return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/to/${form.slug}`);
+      setNotice("Public link copied");
+    } catch {
+      setError("Unable to copy the public link.");
     }
   }
 
@@ -218,7 +285,7 @@ export function BuilderPage({ formId }: { formId: number }) {
 
   return (
     <main className="min-h-screen bg-[#f4f4f2] text-brand-ink">
-      <header className="grid h-16 grid-cols-[240px_1fr_240px] items-center border-b border-black/10 bg-white px-6">
+      <header className="grid h-16 grid-cols-[240px_1fr_330px] items-center border-b border-black/10 bg-white px-6">
         <div className="text-xl font-semibold">FormFlow</div>
         <nav className="flex justify-center gap-10 text-sm">
           <Link href="/" className="pb-2 text-black/60 transition hover:text-black">
@@ -231,7 +298,22 @@ export function BuilderPage({ formId }: { formId: number }) {
             Results
           </Link>
         </nav>
-        <div className="flex justify-end gap-3">
+        <div className="relative flex justify-end gap-2">
+          {notice ? (
+            <span className="absolute right-0 top-11 z-20 flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-xs font-medium shadow-sm">
+              <Check className="h-3.5 w-3.5" />
+              {notice}
+            </span>
+          ) : null}
+          <button
+            onClick={handleCopyLink}
+            disabled={form.status !== "published"}
+            title={form.status === "published" ? "Copy public link" : "Publish before sharing"}
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-black/[0.04] px-3 text-sm font-semibold disabled:opacity-40"
+          >
+            <Copy className="h-4 w-4" />
+            Share
+          </button>
           <Link
             className="inline-flex h-9 items-center rounded-md bg-black/[0.04] px-5 text-sm font-semibold"
             href={`/to/${form.slug}`}
@@ -240,12 +322,12 @@ export function BuilderPage({ formId }: { formId: number }) {
             Preview
           </Link>
           <button
-            onClick={handlePublishForm}
-            disabled={isPublishing || form.status === "published"}
+            onClick={form.status === "published" ? handleUnpublishForm : handlePublishForm}
+            disabled={isPublishing}
             className="inline-flex h-9 items-center gap-2 rounded-md bg-black px-5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {form.status === "published" ? "Published" : "Publish"}
+            {form.status === "published" ? "Unpublish" : "Publish"}
           </button>
         </div>
       </header>
@@ -258,6 +340,7 @@ export function BuilderPage({ formId }: { formId: number }) {
           onAddQuestion={handleCreateQuestion}
           onReorderQuestions={handleReorderQuestions}
           onSelectQuestion={setSelectedQuestionId}
+          onUpdateForm={handleUpdateForm}
         />
 
         <div className="flex flex-col items-center px-6 py-10">
@@ -275,6 +358,7 @@ export function BuilderPage({ formId }: { formId: number }) {
         <BuilderSettingsPanel
           question={selectedQuestion}
           onDeleteQuestion={handleDeleteQuestion}
+          onDuplicateQuestion={handleDuplicateQuestion}
           onDraftQuestionChange={handleDraftQuestionChange}
           onUpdateQuestion={handleUpdateQuestion}
         />

@@ -22,6 +22,8 @@ export type CreateFormInput = {
   description?: string | null;
 };
 
+export type UpdateFormInput = Partial<CreateFormInput>;
+
 export type FormBuilder = FormRead & {
   questions: Question[];
 };

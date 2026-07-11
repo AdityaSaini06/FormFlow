@@ -36,3 +36,8 @@ export async function publishForm(formId: number): Promise<FormRead> {
   const response = await http.post<FormRead>(`/forms/${formId}/publish`);
   return response.data;
 }
+
+export async function unpublishForm(formId: number): Promise<FormRead> {
+  const response = await http.post<FormRead>(`/forms/${formId}/unpublish`);
+  return response.data;
+}

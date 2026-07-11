@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Settings } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { getQuestionTitleLabel, isPlaceholderQuestionTitle } from "@/features/builder/question-title";
 import type { FormBuilder } from "@/types/forms";
@@ -28,6 +29,7 @@ type BuilderSidebarProps = {
   onAddQuestion: () => void;
   onReorderQuestions: (questionIds: number[]) => void;
   onSelectQuestion: (questionId: number) => void;
+  onUpdateForm: (changes: { title?: string; description?: string | null }) => Promise<void>;
 };
 
 export function BuilderSidebar({
@@ -37,7 +39,16 @@ export function BuilderSidebar({
   onAddQuestion,
   onReorderQuestions,
   onSelectQuestion,
+  onUpdateForm,
 }: BuilderSidebarProps) {
+  const [showFormSettings, setShowFormSettings] = useState(false);
+  const [title, setTitle] = useState(form.title);
+  const [description, setDescription] = useState(form.description ?? "");
+
+  useEffect(() => {
+    setTitle(form.title);
+    setDescription(form.description ?? "");
+  }, [form.title, form.description]);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -98,10 +109,34 @@ export function BuilderSidebar({
       </DndContext>
 
       <div className="border-t border-black/10 p-4">
-        <button className="flex h-10 items-center gap-2 rounded-md px-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.03]">
+        <button
+          onClick={() => setShowFormSettings((visible) => !visible)}
+          className="flex h-10 items-center gap-2 rounded-md px-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.03]"
+        >
           <Settings className="h-4 w-4" />
           Form Settings
         </button>
+        {showFormSettings ? (
+          <div className="mt-3 space-y-3">
+            <input
+              value={title}
+              aria-label="Form title"
+              placeholder="Form title"
+              onChange={(event) => setTitle(event.target.value)}
+              onBlur={() => title.trim() && onUpdateForm({ title: title.trim() })}
+              className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black"
+            />
+            <textarea
+              value={description}
+              aria-label="Form description"
+              placeholder="Form description"
+              rows={3}
+              onChange={(event) => setDescription(event.target.value)}
+              onBlur={() => onUpdateForm({ description: description.trim() || null })}
+              className="w-full resize-none rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-black"
+            />
+          </div>
+        ) : null}
       </div>
     </aside>
   );

@@ -1,4 +1,4 @@
-import { Mail, Plus, Trash2, X } from "lucide-react";
+import { Copy, Mail, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { isPlaceholderQuestionTitle, QUESTION_TITLE_PLACEHOLDER } from "@/features/builder/question-title";
@@ -15,6 +15,7 @@ const QUESTION_TYPES: Array<{ label: string; value: QuestionType }> = [
 type BuilderSettingsPanelProps = {
   question: Question | null;
   onDeleteQuestion: (questionId: number) => Promise<void>;
+  onDuplicateQuestion: (question: Question) => Promise<void>;
   onDraftQuestionChange: (questionId: number, changes: QuestionUpdateInput) => void;
   onUpdateQuestion: (questionId: number, changes: QuestionUpdateInput) => Promise<void>;
 };
@@ -22,6 +23,7 @@ type BuilderSettingsPanelProps = {
 export function BuilderSettingsPanel({
   question,
   onDeleteQuestion,
+  onDuplicateQuestion,
   onDraftQuestionChange,
   onUpdateQuestion,
 }: BuilderSettingsPanelProps) {
@@ -102,6 +104,8 @@ export function BuilderSettingsPanel({
             <label className="block text-sm font-medium">
               Question
               <input
+                key={question.id}
+                autoFocus={isPlaceholderQuestionTitle(question.title)}
                 value={title}
                 placeholder={QUESTION_TITLE_PLACEHOLDER}
                 onBlur={persistTitle}
@@ -216,7 +220,15 @@ export function BuilderSettingsPanel({
         <div className="p-6 text-sm text-black/55">Select a question to edit its settings.</div>
       )}
 
-      <div className="border-t border-black/10 p-6">
+      <div className="flex gap-5 border-t border-black/10 p-6">
+        <button
+          disabled={!question}
+          onClick={() => question && onDuplicateQuestion(question)}
+          className="flex h-10 items-center gap-2 rounded-md text-sm font-semibold disabled:opacity-40"
+        >
+          <Copy className="h-4 w-4" />
+          Duplicate
+        </button>
         <button
           disabled={!question}
           onClick={() => question && onDeleteQuestion(question.id)}

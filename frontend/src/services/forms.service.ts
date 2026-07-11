@@ -1,5 +1,5 @@
 import { http } from "@/services/http";
-import type { CreateFormInput, FormListItem, FormRead } from "@/types/forms";
+import type { CreateFormInput, FormListItem, FormRead, UpdateFormInput } from "@/types/forms";
 
 export async function listForms(): Promise<FormListItem[]> {
   const response = await http.get<FormListItem[]>("/forms");
@@ -9,4 +9,9 @@ export async function listForms(): Promise<FormListItem[]> {
 export async function createForm(input: CreateFormInput): Promise<FormListItem> {
   const response = await http.post<FormRead>("/forms", input);
   return { ...response.data, response_count: 0 };
+}
+
+export async function updateForm(formId: number, input: UpdateFormInput): Promise<FormRead> {
+  const response = await http.patch<FormRead>(`/forms/${formId}`, input);
+  return response.data;
 }
