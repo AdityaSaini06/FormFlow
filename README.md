@@ -1,159 +1,122 @@
-# Typeform Builder Clone
+# FormFlow
 
-A production-minded Typeform clone built as a full-stack assignment.
+FormFlow is a full-stack Typeform-style form builder. Creators can build and publish forms, collect responses through a one-question-at-a-time experience, and review or export results.
+
+## Features
+
+- Form dashboard with draft/published status and response counts
+- Form create, rename, duplicate, delete, publish, and unpublish workflows
+- Drag-and-drop builder with live preview
+- Short text, long text, email, multiple choice, dropdown, number, rating, and yes/no questions
+- Required fields, descriptions, placeholders, and editable choice options
+- Public shareable forms with transitions, keyboard navigation, progress, and validation
+- Response summaries, individual submissions, and CSV export
+- Responsive desktop and mobile layouts
+- Seeded demo forms and responses
 
 ## Tech Stack
 
-- Frontend: Next.js 15, TypeScript, Tailwind CSS, shadcn/ui-ready structure, Axios
-- Backend: FastAPI, SQLAlchemy, SQLite, Pydantic
+- Frontend: Next.js 15, React 19, TypeScript, Tailwind CSS, Axios, dnd-kit, Framer Motion
+- Backend: FastAPI, SQLAlchemy 2, Pydantic 2
+- Database: SQLite
+
+## Local Setup
+
+### Backend
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+python -m app.seed.run
+python -m uvicorn app.main:app --reload
+```
+
+The API runs at `http://localhost:8000`. Interactive documentation is available at `http://localhost:8000/docs`.
+
+### Frontend
+
+In a second terminal:
+
+```powershell
+cd frontend
+Copy-Item .env.example .env.local
+npm.cmd install
+npm.cmd run dev
+```
+
+The frontend runs at `http://localhost:3000`.
 
 ## Architecture
 
-The repository is split into two deployable applications:
-
-- `frontend/`: creator dashboard, form builder, public respondent flow, response views
-- `backend/`: REST API, database models, schemas, services, seed data
-
-Both apps are intentionally separated so the frontend only talks to the backend through typed service functions, while backend routes stay thin and delegate business logic to service modules.
-
-## Database Design
-
-The backend uses normalized SQLAlchemy models instead of storing whole forms as JSON. This keeps form editing, response validation, and analytics queryable.
-
-Core tables:
-
-- `forms`: top-level form metadata such as title, description, slug, status, and publish timestamps.
-- `questions`: ordered questions that belong to a form. The `position` field supports drag-and-drop ordering.
-- `question_options`: ordered options for choice-style questions.
-- `responses`: one submitted response session for a form.
-- `answers`: one answer for one question inside one response.
-
-Relationships:
-
 ```text
-Form
-  has many Questions
-  has many Responses
+frontend/
+  src/app/        Next.js routes
+  src/features/   Dashboard, builder, public form, and results UI
+  src/services/   Typed API client functions
+  src/types/      Shared frontend contracts
 
-Question
-  belongs to Form
-  may have many QuestionOptions
-  has many Answers
-
-Response
-  belongs to Form
-  has many Answers
-
-Answer
-  belongs to Response
-  belongs to Question
-  may reference QuestionOption
+backend/app/
+  api/routes/     Thin FastAPI route handlers
+  models/         SQLAlchemy database models
+  schemas/        Pydantic request and response models
+  services/       Business logic and validation
+  seed/           Idempotent demo data
 ```
 
-Answer values are stored in typed nullable columns:
+The frontend communicates with the backend only through REST services. Backend routes delegate form, question, submission, and analytics logic to service modules.
 
-- `text_value`: short text, long text, and email answers
-- `number_value`: numeric answers such as ratings
-- `boolean_value`: yes/no answers
-- `question_option_id`: selected option for multiple-choice answers
+## Database Schema
 
-Only the relevant value column is filled for each answer. This is more queryable than a single string or JSON value, especially for results summaries and option counts.
+The database is normalized rather than storing form definitions or responses as JSON.
 
-## Backend API Contracts
+| Table | Purpose |
+| --- | --- |
+| `forms` | Form metadata, slug, status, and publish timestamps |
+| `questions` | Ordered questions belonging to a form |
+| `question_options` | Ordered options for multiple-choice and dropdown questions |
+| `responses` | One submitted response session |
+| `answers` | One typed answer per response and question |
 
-Form endpoints:
+Answers use nullable typed columns: `text_value`, `number_value`, `boolean_value`, or `question_option_id`. Only the column matching the question type is populated.
 
-- `GET /api/forms`: list forms for the dashboard, including response counts
-- `POST /api/forms`: create a draft form
-- `GET /api/forms/{form_id}`: fetch one form
-- `GET /api/forms/{form_id}/builder`: fetch one form with ordered questions and options for the builder
-- `PATCH /api/forms/{form_id}`: update form metadata
-- `POST /api/forms/{form_id}/duplicate`: duplicate a form structure without copying responses
-- `POST /api/forms/{form_id}/publish`: publish a form
-- `POST /api/forms/{form_id}/unpublish`: return a form to draft
-- `DELETE /api/forms/{form_id}`: delete a form
-- `POST /api/forms/{form_id}/questions`: add a question to a form
-- `PATCH /api/forms/{form_id}/questions/{question_id}`: update question settings
-- `DELETE /api/forms/{form_id}/questions/{question_id}`: remove a question and normalize ordering
-- `POST /api/forms/{form_id}/questions/reorder`: persist a new full question order
-- `GET /api/public/forms/{slug}`: fetch a published form for respondents
-- `POST /api/public/forms/{slug}/responses`: validate and submit respondent answers
+## API Overview
 
-Routes are intentionally thin. They translate HTTP requests and errors, while service modules contain business logic such as slug generation, duplication, and publish state changes.
+- `GET/POST /api/forms` - list and create forms
+- `GET/PATCH/DELETE /api/forms/{id}` - read, rename, or delete a form
+- `POST /api/forms/{id}/duplicate` - duplicate form structure
+- `POST /api/forms/{id}/publish` and `/unpublish` - manage publication
+- `GET /api/forms/{id}/builder` - load a form with ordered questions
+- `/api/forms/{id}/questions` - create, update, delete, and reorder questions
+- `GET /api/public/forms/{slug}` - load a published form without authentication
+- `POST /api/public/forms/{slug}/responses` - validate and submit answers
+- `GET /api/forms/{id}/results` - response summaries and recent submissions
+- `GET /api/forms/{id}/results/export` - export all responses as CSV
 
-## Local Development
+## Verification
 
-Frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Backend:
-
-```bash
+```powershell
 cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+
+cd ..\frontend
+npm.cmd run lint
+npx.cmd tsc --noEmit
+npm.cmd run build
 ```
 
-Backend with test/dev dependencies:
+Do not run `npm.cmd run build` while the frontend development server is active because both processes write to `.next`.
 
-```bash
-cd backend
-.venv\Scripts\activate
-pip install -r requirements-dev.txt
-```
+## Configuration
 
-Seed demo data:
+- Frontend: `NEXT_PUBLIC_API_BASE_URL`
+- Backend: `DATABASE_URL`, `API_PREFIX`, `BACKEND_CORS_ORIGINS`
 
-```bash
-cd backend
-.venv\Scripts\activate
-python -m app.seed.run
-```
+Example values are provided in `frontend/.env.example` and `backend/.env.example`.
 
-Default local URLs:
+## Assumptions
 
-- Frontend: `http://localhost:3000` or `http://localhost:3001`
-- Backend: `http://localhost:8000`
-- Backend health check: `http://localhost:8000/api/health`
-
-## Current Milestone
-
-established the project foundation and database model layer:
-
-- Frontend app shell
-- Backend app shell
-- Health check endpoint
-- Shared folder structure for future features
-- API client boundary
-- Normalized SQLAlchemy models for forms, questions, options, responses, and answers
-- Form CRUD API foundation with Pydantic schemas, thin routes, and service-layer logic
-- Idempotent seed script for demo forms and response counts
-- Builder API foundation and first three-panel builder UI shell
-- Public form flow with one-question-at-a-time answering and response submission
-
-## Planned Features
-
-- Dashboard
-- Form CRUD
-- Form Builder
-- Drag and Drop Questions
-- Live Preview
-- Public Shareable Forms
-- One Question At A Time Experience
-- Smooth Animations
-- Keyboard Navigation
-- Validation
-- Progress Bar
-- Submit Responses
-- Responses Dashboard
-- Response Details
-- Summary Statistics
-- Publish / Unpublish
-- Seed Data
+- Creator authentication is intentionally omitted; the app assumes one default creator.
+- Published forms are publicly accessible by slug.
+- Logic branching, integrations, themes, and thank-you screen customization are represented as future settings.
