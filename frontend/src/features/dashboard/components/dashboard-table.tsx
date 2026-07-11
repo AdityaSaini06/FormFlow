@@ -180,7 +180,12 @@ function EmptyState({ onCreateForm }: { onCreateForm: () => void }) {
 }
 
 function formatRelativeDate(value: string) {
-  const updatedAt = new Date(value).getTime();
+  if (!value) return "";
+  let dateStr = value;
+  if (!value.endsWith("Z") && !value.includes("+") && !value.includes("-")) {
+    dateStr = value.includes("T") ? `${value}Z` : `${value.replace(" ", "T")}Z`;
+  }
+  const updatedAt = new Date(dateStr).getTime();
   const diffMs = Date.now() - updatedAt;
   const diffHours = Math.round(diffMs / (1000 * 60 * 60));
 
@@ -200,5 +205,5 @@ function formatRelativeDate(value: string) {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(new Date(dateStr));
 }

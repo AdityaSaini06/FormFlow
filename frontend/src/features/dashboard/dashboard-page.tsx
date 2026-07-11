@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, Check, Loader2, Plus, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { createForm, deleteForm, duplicateForm, listForms } from "@/services/for
 import type { FormListItem } from "@/types/forms";
 
 export function DashboardPage() {
+  const router = useRouter();
   const [forms, setForms] = useState<FormListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -76,6 +78,7 @@ export function DashboardPage() {
       setTitle("");
       setDescription("");
       setNotice("Form created");
+      router.push(`/forms/${form.id}/builder`);
     } catch {
       setError("Unable to create form.");
     } finally {
